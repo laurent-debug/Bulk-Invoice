@@ -45,27 +45,6 @@ export function AISetup({ open, onOpenChange }: { open: boolean; onOpenChange: (
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Why use AI explanation box */}
-          <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4 space-y-3">
-            <h5 className="text-sm font-semibold text-white flex items-center gap-2">
-              <span>🧠</span> L&apos;IA vs. Standard
-            </h5>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-              <div className="space-y-1.5 p-3 rounded-lg bg-white/[0.02] border border-white/5">
-                <span className="font-bold text-gray-400 uppercase tracking-widest text-[9px] block">Traitement Local (Standard)</span>
-                <p className="text-gray-400 leading-relaxed">
-                  Utilise des mots-clés et des formules strictes (Regex). <strong className="text-gray-300">Limites :</strong> Si la facture a une mise en page inhabituelle, le fournisseur ou le numéro de facture seront souvent ratés. Impossible de déduire une catégorie.
-                </p>
-              </div>
-              <div className="space-y-1.5 p-3 rounded-lg bg-violet-500/10 border border-violet-500/20">
-                <span className="font-bold text-violet-400 uppercase tracking-widest text-[9px] block">Traitement Serveur (Avec IA)</span>
-                <p className="text-violet-200/70 leading-relaxed">
-                  L&apos;IA « comprend » le document comme un humain. Elle identifie fiablement les <strong className="text-violet-200">fournisseurs</strong> (même complexes), gère les reçus froissés (Vision) et <strong className="text-violet-200">catégorise</strong> les dépenses logiquement.
-                </p>
-              </div>
-            </div>
-          </div>
-
           {/* AI Settings Section */}
           <div className="space-y-4">
             <h4 className="text-xs font-bold uppercase tracking-widest text-violet-400">Configuration IA</h4>
@@ -154,6 +133,27 @@ export function AISetup({ open, onOpenChange }: { open: boolean; onOpenChange: (
                 <p className="text-xs text-gray-400">
                   L&apos;IA analyse directement l&apos;image du document. Bien plus précis pour les tickets scannés et manuscrits.
                 </p>
+              </div>
+            </div>
+
+            {/* Why use AI explanation box */}
+            <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4 space-y-3 mt-6">
+              <h5 className="text-sm font-semibold text-white flex items-center gap-2">
+                <span>🧠</span> Pourquoi utiliser l&apos;IA ? (vs. Standard)
+              </h5>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                <div className="space-y-1.5 p-3 rounded-lg bg-white/[0.02] border border-white/5">
+                  <span className="font-bold text-gray-400 uppercase tracking-widest text-[9px] block">Traitement Local (Standard)</span>
+                  <p className="text-gray-400 leading-relaxed">
+                    Utilise des mots-clés et des formules strictes (Regex). <strong className="text-gray-300">Limites :</strong> Si la facture a une mise en page inhabituelle, le fournisseur ou le numéro de facture seront souvent ratés. Impossible de déduire une catégorie.
+                  </p>
+                </div>
+                <div className="space-y-1.5 p-3 rounded-lg bg-violet-500/10 border border-violet-500/20">
+                  <span className="font-bold text-violet-400 uppercase tracking-widest text-[9px] block">Traitement par l&apos;IA</span>
+                  <p className="text-violet-200/70 leading-relaxed">
+                    L&apos;IA « comprend » le document comme un humain. Elle identifie fiablement les <strong className="text-violet-200">fournisseurs</strong> (même complexes), gère les reçus froissés (Vision) et <strong className="text-violet-200">catégorise</strong> les dépenses logiquement.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
