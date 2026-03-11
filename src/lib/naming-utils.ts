@@ -38,6 +38,10 @@ function getTokenValue(
         : '0.00';
 
     case 'currency':
+      // Return currency if showCurrencyAlways is true
+      if (pattern.showCurrencyAlways) {
+        return file.extractedCurrency;
+      }
       // Skip if same as default currency
       if (file.extractedCurrency === pattern.defaultCurrency) {
         return null;

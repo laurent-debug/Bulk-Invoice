@@ -206,6 +206,11 @@ export const useAppStore = create<AppState>()(
           merged.aiConfig.visionEnabled = true;
         }
 
+        // Ensure showCurrencyAlways exists on old configs
+        if (merged.pattern && merged.pattern.showCurrencyAlways === undefined) {
+          merged.pattern.showCurrencyAlways = false;
+        }
+
         return merged;
       },
     }

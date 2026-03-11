@@ -31,6 +31,7 @@ export interface NamingPattern {
   raw: string; // ex: "[date]_[amount]_[vendor]"
   dateFormat: DateFormatType;
   defaultCurrency: string;
+  showCurrencyAlways: boolean;
 }
 
 export interface AIConfig {
@@ -94,4 +95,5 @@ export const DEFAULT_PATTERN: NamingPattern = {
   raw: '[date]_[amount]_[currency]_[vendor]_[category]_[invoiceNumber]',
   dateFormat: 'YYMMDD',
   defaultCurrency: 'CHF',
+  showCurrencyAlways: false,
 };

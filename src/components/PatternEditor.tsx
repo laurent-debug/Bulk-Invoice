@@ -2,6 +2,7 @@
 
 import { useAppStore } from '@/lib/store';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { TokenType, DateFormatType } from '@/lib/types';
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -137,15 +138,29 @@ export function PatternEditor() {
         </div>
 
         {/* Main input */}
-        <div className="relative mb-3">
-          <input
-            ref={inputRef}
-            value={displayValue}
-            onChange={(e) => handleInputChange(e.target.value)}
-            onBlur={handleBlur}
-            placeholder="Collez un exemple (ex: 260311_150.00_Apple) ou votre format"
-            className="w-full bg-white/5 border border-white/10 rounded-lg text-white font-mono text-sm h-12 px-4 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 placeholder:text-gray-500 placeholder:font-sans"
-          />
+        <div className="flex gap-2 mb-3">
+          <div className="relative flex-1">
+            <input
+              ref={inputRef}
+              value={displayValue}
+              onChange={(e) => handleInputChange(e.target.value)}
+              onBlur={handleBlur}
+              placeholder="Colle ici un nom de fichier .pdf comme tu le fais chez toi, ou alors choisis le mode par défaut (qui est le nôtre)"
+              className="w-full bg-white/5 border border-white/10 rounded-lg text-white font-mono text-sm h-12 px-4 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 placeholder:text-gray-500 placeholder:font-sans"
+            />
+          </div>
+          <Button
+            variant="outline"
+            className="h-12 border-white/10 bg-white/5 text-gray-400 hover:text-white"
+            onClick={() => {
+              const defaultRaw = '[date]_[amount]_[currency]_[vendor]_[category]_[invoiceNumber]';
+              setDisplayValue(defaultRaw);
+              setPattern({ raw: defaultRaw });
+              setIsNaturalMode(false);
+            }}
+          >
+            Réinitialiser
+          </Button>
         </div>
 
         {/* Help text + token badges */}
@@ -164,13 +179,13 @@ export function PatternEditor() {
         </div>
 
         {/* Options row + Preview */}
-        <div className="flex flex-col sm:flex-row gap-3 items-stretch">
-          {/* Settings */}
-          <div className="flex items-center gap-4 flex-shrink-0">
+        <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
+          {/* Settings Group */}
+          <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-1.5">
               <span className="text-[10px] text-gray-500">Date</span>
               <Select
-                value={pattern.dateFormat ?? undefined}
+                value={pattern.dateFormat || undefined}
                 onValueChange={(v) => setPattern({ dateFormat: v as DateFormatType })}
               >
                 <SelectTrigger className="w-28 h-7 text-[11px] bg-white/5 border-white/10 text-white">
@@ -183,10 +198,11 @@ export function PatternEditor() {
                 </SelectContent>
               </Select>
             </div>
+
             <div className="flex items-center gap-1.5">
               <span className="text-[10px] text-gray-500">Devise</span>
               <Select
-                value={pattern.defaultCurrency ?? undefined}
+                value={pattern.defaultCurrency || undefined}
                 onValueChange={(v) => setPattern({ defaultCurrency: v })}
               >
                 <SelectTrigger className="w-16 h-7 text-[11px] bg-white/5 border-white/10 text-white">
@@ -200,13 +216,30 @@ export function PatternEditor() {
                 </SelectContent>
               </Select>
             </div>
+
+            <div className="h-4 w-[1px] bg-white/10 mx-1 hidden sm:block" />
+
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] text-gray-500 whitespace-nowrap">Affichage devise</span>
+              <Select
+                value={pattern.showCurrencyAlways ? 'always' : 'conditional'}
+                onValueChange={(v) => setPattern({ showCurrencyAlways: v === 'always' })}
+              >
+                <SelectTrigger className="w-40 h-7 text-[11px] bg-white/5 border-white/10 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-900 border-white/10">
+                  <SelectItem value="conditional" className="text-white text-xs">Masquer si {pattern.defaultCurrency}</SelectItem>
+                  <SelectItem value="always" className="text-white text-xs">Toujours afficher</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {/* Preview */}
           {preview && (
-            <div className="flex-1 rounded-lg bg-emerald-500/5 border border-emerald-500/15 px-3 py-2 flex items-center gap-2 min-w-0">
+            <div className="flex-1 rounded-lg bg-emerald-500/5 border border-emerald-500/15 px-3 py-2 flex items-center gap-2 min-w-0 w-full lg:w-auto">
               <span className="text-[9px] text-emerald-500/60 font-bold uppercase tracking-widest whitespace-nowrap">Aperçu</span>
-              <span className="text-[10px] text-gray-600">→</span>
               <p className="text-xs text-emerald-400 font-mono truncate">{preview}</p>
             </div>
           )}
