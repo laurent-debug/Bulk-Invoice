@@ -3,6 +3,7 @@
 import { useAppStore } from '@/lib/store';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { TokenType, DateFormatType } from '@/lib/types';
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -19,10 +20,19 @@ const TOKEN_INFO: Record<TokenType, { label: string; example: string }> = {
 const ALL_TOKENS: TokenType[] = ['date', 'amount', 'currency', 'vendor', 'category', 'invoiceNumber'];
 
 export function PatternEditor() {
-  const { pattern, setPattern } = useAppStore();
+  const { pattern, setPattern, categories, addCategory, removeCategory } = useAppStore();
   const inputRef = useRef<HTMLInputElement>(null);
   const [displayValue, setDisplayValue] = useState(pattern.raw || '');
   const [preview, setPreview] = useState('');
+  const [newCat, setNewCat] = useState('');
+
+  const handleAddCat = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newCat.trim()) {
+      addCategory(newCat.trim());
+      setNewCat('');
+    }
+  };
 
   // Sync display value when pattern.raw changes externally
   useEffect(() => {
@@ -188,6 +198,54 @@ export function PatternEditor() {
               </p>
             </div>
           </div>
+
+          {/* Categories Manager */}
+          <div className="mt-8 pt-6 border-t border-white/5 space-y-4">
+            <div>
+              <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-violet-500/50" />
+                Catégories métiers
+              </h4>
+              <p className="text-xs text-gray-400 mt-1">
+                Gérez les catégories qui pourront être associées à vos factures (ex: Fournitures, Achats, Frais...).
+              </p>
+            </div>
+
+            <form onSubmit={handleAddCat} className="flex gap-2 max-w-sm">
+              <Input
+                value={newCat}
+                onChange={(e) => setNewCat(e.target.value)}
+                placeholder="Nouvelle catégorie…"
+                className="bg-white/5 border-white/10 text-white text-sm flex-1 h-9"
+              />
+              <Button type="submit" variant="outline" className="h-9 border-white/10 text-gray-300 hover:text-white">
+                Ajouter
+              </Button>
+            </form>
+
+            {categories.length > 0 && (
+              <div className="flex flex-wrap gap-2 pt-2">
+                {categories.map((cat) => (
+                  <Badge
+                    key={cat}
+                    className="bg-white/5 hover:bg-red-500/20 text-gray-300 border-white/10 pr-1 gap-1 group transition-all"
+                  >
+                    {cat}
+                    <button
+                      type="button"
+                      onClick={() => removeCategory(cat)}
+                      className="ml-1 rounded-full hover:bg-white/10 p-0.5"
+                    >
+                      <svg className="h-2 w-2 text-gray-500 group-hover:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
+
         </div>
       </div>
     </div>

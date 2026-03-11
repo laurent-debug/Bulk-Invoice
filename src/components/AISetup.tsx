@@ -13,11 +13,10 @@ import type { AIProvider } from '@/lib/types';
 import { testAIConnection } from '@/lib/ai-extract';
 
 export function AISetup({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
-  const { aiConfig, setAIConfig, categories, addCategory, removeCategory } = useAppStore();
+  const { aiConfig, setAIConfig } = useAppStore();
   const [testResult, setTestResult] = useState<{ success: boolean; error?: string } | null>(null);
   const [testing, setTesting] = useState(false);
   const [localKey, setLocalKey] = useState(aiConfig.apiKey);
-  const [newCat, setNewCat] = useState('');
 
   const handleTest = async () => {
     setTesting(true);
@@ -31,13 +30,7 @@ export function AISetup({ open, onOpenChange }: { open: boolean; onOpenChange: (
     }
   };
 
-  const handleAddCat = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newCat.trim()) {
-      addCategory(newCat.trim());
-      setNewCat('');
-    }
-  };
+
 
   const providers: AIProvider[] = ['gemini', 'openai', 'deepseek'];
 
@@ -146,44 +139,7 @@ export function AISetup({ open, onOpenChange }: { open: boolean; onOpenChange: (
 
           <hr className="border-white/5" />
 
-          {/* Categories Section */}
-          <div className="space-y-4">
-            <h4 className="text-xs font-bold uppercase tracking-widest text-violet-400">Catégories Métiers</h4>
-            <p className="text-xs text-gray-400">
-              Ces catégories aideront l&apos;IA à classer vos factures.
-            </p>
 
-            <form onSubmit={handleAddCat} className="flex gap-2">
-              <Input
-                value={newCat}
-                onChange={(e) => setNewCat(e.target.value)}
-                placeholder="Nouvelle catégorie…"
-                className="bg-white/5 border-white/10 text-white text-sm flex-1 h-9"
-              />
-              <Button type="submit" variant="outline" className="h-9 border-white/10 text-gray-300 hover:text-white">
-                Ajouter
-              </Button>
-            </form>
-
-            <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-1">
-              {categories.map((cat) => (
-                <Badge
-                  key={cat}
-                  className="bg-white/5 hover:bg-red-500/20 text-gray-300 border-white/10 pr-1 gap-1 group transition-all"
-                >
-                  {cat}
-                  <button
-                    onClick={() => removeCategory(cat)}
-                    className="ml-1 rounded-full hover:bg-white/10 p-0.5"
-                  >
-                    <svg className="h-2 w-2 text-gray-500 group-hover:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </Badge>
-              ))}
-            </div>
-          </div>
         </div>
 
         {/* Footer info */}
