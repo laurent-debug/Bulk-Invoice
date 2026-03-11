@@ -191,19 +191,24 @@ export default function HomePage() {
             </p>
 
             {/* Feature badges */}
-            <div className="flex flex-wrap items-center justify-center gap-2 mt-6">
-              {[
-                { icon: '🔒', text: 'Zéro stockage serveur' },
-                { icon: '☁️', text: 'IA Cloud optionnelle' },
-                { icon: '📄', text: 'Scans & Manuscrit OK' },
-              ].map((f, i) => (
-                <span
-                  key={i}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-white/5 border border-white/10 px-3 py-1.5 text-[11px] text-gray-300"
-                >
-                  {f.icon} {f.text}
+            <div className="flex flex-col items-center gap-4 mt-8">
+              {/* Highlight badge */}
+              <span className="inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-500/10 px-5 py-2 text-sm text-violet-300 font-medium">
+                📄 Scans, reçus et manuscrits parfaitement lus par l&apos;IA
+              </span>
+
+              {/* Security badges */}
+              <div className="flex flex-wrap items-center justify-center gap-3">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-gray-400 font-medium whitespace-nowrap">
+                  🔒 Vos fichiers originaux ne sont pas stockés
                 </span>
-              ))}
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-gray-400 font-medium whitespace-nowrap">
+                  🔑 Vos clés d&apos;API ne sont pas enregistrées
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-gray-400 font-medium whitespace-nowrap">
+                  🌐 Traitement 100% dans votre navigateur par défaut
+                </span>
+              </div>
             </div>
           </div>
         )}
