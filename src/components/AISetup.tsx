@@ -54,13 +54,13 @@ export function AISetup({ open, onOpenChange }: { open: boolean; onOpenChange: (
               <div className="space-y-1.5 p-3 rounded-lg bg-white/[0.02] border border-white/5">
                 <span className="font-bold text-gray-400 uppercase tracking-widest text-[9px] block">Traitement Local (Standard)</span>
                 <p className="text-gray-400 leading-relaxed">
-                  Utilise des formules mathématiques simples pour trouver une date ou un montant. <strong className="text-gray-300">Limites :</strong> Impossible de détecter le nom du fournisseur ou de catégoriser la facture.
+                  Utilise des mots-clés et des formules strictes (Regex). <strong className="text-gray-300">Limites :</strong> Si la facture a une mise en page inhabituelle, le fournisseur ou le numéro de facture seront souvent ratés. Impossible de déduire une catégorie.
                 </p>
               </div>
               <div className="space-y-1.5 p-3 rounded-lg bg-violet-500/10 border border-violet-500/20">
                 <span className="font-bold text-violet-400 uppercase tracking-widest text-[9px] block">Traitement Serveur (Avec IA)</span>
                 <p className="text-violet-200/70 leading-relaxed">
-                  L&apos;IA « lit » le document comme un humain. Elle identifie parfaitement les <strong className="text-violet-200">fournisseurs</strong>, gère les devises multiples, et <strong className="text-violet-200">catégorise</strong> les factures automatiquement.
+                  L&apos;IA « comprend » le document comme un humain. Elle identifie fiablement les <strong className="text-violet-200">fournisseurs</strong> (même complexes), gère les reçus froissés (Vision) et <strong className="text-violet-200">catégorise</strong> les dépenses logiquement.
                 </p>
               </div>
             </div>
