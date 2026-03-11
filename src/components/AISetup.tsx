@@ -76,8 +76,8 @@ export function AISetup({ open, onOpenChange }: { open: boolean; onOpenChange: (
                       <span className="text-xs text-gray-400">{info.description}</span>
                     </div>
                     <div className="text-right">
-                      <span className="text-xs font-mono text-gray-300">~${info.inputCostPer1M}</span>
-                      <span className="text-[10px] text-gray-500 block">/M tokens</span>
+                      <span className="text-xs font-mono text-emerald-400">~${(info.inputCostPer1M * 0.1).toFixed(3)}</span>
+                      <span className="text-[9px] text-gray-500 block">pour 100 factures</span>
                     </div>
                   </button>
                 );
