@@ -131,7 +131,7 @@ export function FileTable() {
                   {/* Currency */}
                   <div>
                     <label className="text-[10px] text-gray-500 mb-0.5 block">Devise</label>
-                    <Select value={file.extractedCurrency} onValueChange={(v) => updateFile(file.id, { extractedCurrency: v })}>
+                    <Select value={(file.extractedCurrency as string) || 'CHF'} onValueChange={(v) => updateFile(file.id, { extractedCurrency: v } as any)}>
                       <SelectTrigger className="h-7 text-xs bg-white/5 border-white/10 text-white">
                         <SelectValue />
                       </SelectTrigger>
@@ -157,7 +157,7 @@ export function FileTable() {
                   {/* Category */}
                   <div>
                     <label className="text-[10px] text-gray-500 mb-0.5 block">Catégorie</label>
-                    <Select value={file.category || '_none'} onValueChange={(v) => updateFile(file.id, { category: v === '_none' ? '' : v })}>
+                    <Select value={(file.category as string) || '_none'} onValueChange={(v) => updateFile(file.id, { category: v === '_none' ? '' : v } as any)}>
                       <SelectTrigger className={`h-7 text-xs bg-white/5 border-white/10 text-white ${!file.category ? 'border-amber-500/30' : ''}`}>
                         <SelectValue placeholder="—" />
                       </SelectTrigger>

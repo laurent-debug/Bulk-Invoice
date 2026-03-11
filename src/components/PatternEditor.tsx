@@ -44,17 +44,31 @@ function autoDetectPattern(input: string): string {
   // Invoice Number: F2024-001, INV-..., etc.
   result = result.replace(/(?<=^|[_ \.-])(?:(F|INV|FAC|RE)-?\d{4,}-?[a-zA-Z0-9]*)(?=$|[_ \.-])/gi, '[invoiceNumber]');
 
-  // 2. Natural Language Detection (e.g. "date_montant")
-  for (const token of ALL_TOKENS) {
-    const { aliases } = TOKEN_INFO[token];
-    for (const alias of aliases) {
-      // Match whole "word" between separators
-      const regex = new RegExp(`(?<=^|[_\\-\\. ])${alias}(?=$|[_\\-\\. ])`, 'gi');
-      if (regex.test(result)) {
-        result = result.replace(regex, `[${token}]`);
+    // 2. Natural Language Detection (e.g. "date_montant")
+    for (const token of ALL_TOKENS) {
+      const { aliases } = TOKEN_INFO[token];
+      for (const alias of aliases) {
+        // Detect whole words, but ONLY if they are not already inside brackets
+        // This regex looks for the alias surrounded by separators or string boundaries
+        const regex = new RegExp(`(?<=^|[_\\-\\. ])\\b${alias}\\b(?=$|[_\\-\\. ])`, 'gi');
+        
+        // Safety: check if it matches and if it's NOT inside brackets
+        if (regex.test(result)) {
+          // Double check: replace only if the matched string is not preceded by '['
+          // Actually, a simpler way is to replace only if no '[' follows before a ']'
+          // But since we want to be safe, let's use a capture group and check
+          result = result.replace(regex, (match, offset, fullString) => {
+            // Check if we are inside brackets (naive but effective for this case)
+            const before = fullString.substring(0, offset);
+            const after = fullString.substring(offset);
+            const openBrackets = (before.match(/\[/g) || []).length;
+            const closedBrackets = (before.match(/\]/g) || []).length;
+            if (openBrackets > closedBrackets) return match; // and it's followed by ]
+            return `[${token}]`;
+          });
+        }
       }
     }
-  }
 
   return result;
 }
@@ -146,7 +160,7 @@ export function PatternEditor() {
               onChange={(e) => handleInputChange(e.target.value)}
               onBlur={handleBlur}
               placeholder="Colle ici un nom de fichier .pdf comme tu le fais chez toi, ou alors choisis le mode par défaut (qui est le nôtre)"
-              className="w-full bg-white/5 border border-white/10 rounded-lg text-white font-mono text-sm h-12 px-4 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 placeholder:text-gray-500 placeholder:font-sans"
+              className="w-full bg-white/5 border border-white/10 rounded-lg text-white font-mono text-sm h-12 px-4 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 placeholder:text-gray-500 placeholder:font-sans text-ellipsis"
             />
           </div>
           <Button
@@ -185,7 +199,7 @@ export function PatternEditor() {
             <div className="flex items-center gap-1.5">
               <span className="text-[10px] text-gray-500">Date</span>
               <Select
-                value={pattern.dateFormat || undefined}
+                value={(pattern.dateFormat as string) || 'YYMMDD'}
                 onValueChange={(v) => setPattern({ dateFormat: v as DateFormatType })}
               >
                 <SelectTrigger className="w-28 h-7 text-[11px] bg-white/5 border-white/10 text-white">
@@ -202,7 +216,7 @@ export function PatternEditor() {
             <div className="flex items-center gap-1.5">
               <span className="text-[10px] text-gray-500">Devise</span>
               <Select
-                value={pattern.defaultCurrency || undefined}
+                value={(pattern.defaultCurrency as string) || 'CHF'}
                 onValueChange={(v) => setPattern({ defaultCurrency: v })}
               >
                 <SelectTrigger className="w-16 h-7 text-[11px] bg-white/5 border-white/10 text-white">
