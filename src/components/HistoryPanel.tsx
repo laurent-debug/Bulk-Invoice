@@ -43,7 +43,7 @@ export function HistoryPanel({ open, onOpenChange }: { open: boolean; onOpenChan
                     {record.fileCount} fichier{record.fileCount > 1 ? 's' : ''}
                   </p>
                   <p className="text-xs text-gray-500 font-mono">
-                    {record.patternUsed.tokens.join(record.patternUsed.separator)}
+                    {record.patternUsed.raw}
                   </p>
                   <Button
                     variant="ghost"

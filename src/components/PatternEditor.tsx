@@ -7,85 +7,27 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import type { TokenType, DateFormatType } from '@/lib/types';
 import { useState, useRef, useEffect, useCallback } from 'react';
 
-const TOKEN_INFO: Record<TokenType, { label: string; example: string; aliases: string[] }> = {
-  date: { label: 'Date', example: '260311', aliases: ['date', 'dat', 'jour', 'day', 'yymmdd', 'yyyy-mm-dd', 'dd-mm-yyyy'] },
-  amount: { label: 'Montant', example: '150.00', aliases: ['montant', 'amount', 'total', 'prix', 'price', 'ttc', 'somme', 'xxx.xx'] },
-  currency: { label: 'Devise', example: '(EUR)', aliases: ['devise', 'currency', 'monnaie', 'chf', 'eur', 'usd'] },
-  vendor: { label: 'Fournisseur', example: 'Migros', aliases: ['fournisseur', 'vendor', 'magasin', 'destinataire', 'enseigne', 'societe', 'société'] },
-  category: { label: 'Catégorie', example: 'Fournitures', aliases: ['categorie', 'catégorie', 'category', 'cat', 'type'] },
-  invoiceNumber: { label: 'N° Facture', example: 'F2024-001', aliases: ['facture', 'invoice', 'numero', 'numéro', 'num', 'no', 'no-facture', 'ref', 'référence', 'reference'] },
+const TOKEN_INFO: Record<TokenType, { label: string; example: string }> = {
+  date: { label: 'Date', example: '260311' },
+  amount: { label: 'Montant', example: '150.00' },
+  currency: { label: 'Devise', example: '(EUR)' },
+  vendor: { label: 'Fournisseur', example: 'Migros' },
+  category: { label: 'Catégorie', example: 'Fournitures' },
+  invoiceNumber: { label: 'N° Facture', example: 'F2024-001' },
 };
 
 const ALL_TOKENS: TokenType[] = ['date', 'amount', 'currency', 'vendor', 'category', 'invoiceNumber'];
-
-/**
- * Auto-detect tokens from natural language input
- * e.g. "date_montant_fournisseur" → "[date]_[amount]_[vendor]"
- */
-function autoDetectPattern(input: string): string {
-  let result = input;
-
-  // Remove .pdf extension if user pasted a full filename
-  result = result.replace(/\.pdf$/i, '');
-
-  // Already uses bracket notation? Return as-is
-  if (/\[.+?\]/.test(input)) return input;
-
-  // 1. Concrete Pattern Detection (e.g. "260311", "150.00", "CHF")
-  // Date: 6 digits (YYMMDD) or standard dates
-  result = result.replace(/(?<=^|[_ \.-])(?:20\d{2}[-\.]\d{2}[-\.]\d{2}|\d{2}[-\.]\d{2}[-\.]20\d{2}|\d{6})(?=$|[_ \.-])/g, '[date]');
-  
-  // Amount: number with exactly 2 decimal places (e.g. 150.00, 4.50)
-  result = result.replace(/(?<=^|[_ \.-])\d+[\.,]\d{2}(?=$|[_ \.-])/g, '[amount]');
-  
-  // Currency: CHF, EUR, USD, etc.
-  result = result.replace(/(?<=^|[_ \.-])(CHF|EUR|USD|GBP)(?=$|[_ \.-])/gi, '[currency]');
-
-  // Invoice Number: F2024-001, INV-..., etc.
-  result = result.replace(/(?<=^|[_ \.-])(?:(F|INV|FAC|RE)-?\d{4,}-?[a-zA-Z0-9]*)(?=$|[_ \.-])/gi, '[invoiceNumber]');
-
-    // 2. Natural Language Detection (e.g. "date_montant")
-    for (const token of ALL_TOKENS) {
-      const { aliases } = TOKEN_INFO[token];
-      for (const alias of aliases) {
-        // Detect whole words, but ONLY if they are not already inside brackets
-        // This regex looks for the alias surrounded by separators or string boundaries
-        const regex = new RegExp(`(?<=^|[_\\-\\. ])\\b${alias}\\b(?=$|[_\\-\\. ])`, 'gi');
-        
-        // Safety: check if it matches and if it's NOT inside brackets
-        if (regex.test(result)) {
-          // Double check: replace only if the matched string is not preceded by '['
-          // Actually, a simpler way is to replace only if no '[' follows before a ']'
-          // But since we want to be safe, let's use a capture group and check
-          result = result.replace(regex, (match, offset, fullString) => {
-            // Check if we are inside brackets (naive but effective for this case)
-            const before = fullString.substring(0, offset);
-            const after = fullString.substring(offset);
-            const openBrackets = (before.match(/\[/g) || []).length;
-            const closedBrackets = (before.match(/\]/g) || []).length;
-            if (openBrackets > closedBrackets) return match; // and it's followed by ]
-            return `[${token}]`;
-          });
-        }
-      }
-    }
-
-  return result;
-}
 
 export function PatternEditor() {
   const { pattern, setPattern } = useAppStore();
   const inputRef = useRef<HTMLInputElement>(null);
   const [displayValue, setDisplayValue] = useState(pattern.raw || '');
   const [preview, setPreview] = useState('');
-  const [isNaturalMode, setIsNaturalMode] = useState(false);
 
   // Sync display value when pattern.raw changes externally
   useEffect(() => {
-    if (!isNaturalMode) {
-      setDisplayValue(pattern.raw || '');
-    }
-  }, [pattern.raw, isNaturalMode]);
+    setDisplayValue(pattern.raw || '');
+  }, [pattern.raw]);
 
   // Update preview dynamically
   useEffect(() => {
@@ -98,28 +40,6 @@ export function PatternEditor() {
     setPreview(result ? result + '.pdf' : '');
   }, [pattern.raw]);
 
-  const handleInputChange = useCallback((value: string) => {
-    setDisplayValue(value);
-
-    // Auto-detect if user is typing natural language (no brackets)
-    if (!/\[/.test(value)) {
-      setIsNaturalMode(true);
-      const detected = autoDetectPattern(value);
-      setPattern({ raw: detected });
-    } else {
-      setIsNaturalMode(false);
-      setPattern({ raw: value });
-    }
-  }, [setPattern]);
-
-  const handleBlur = useCallback(() => {
-    // On blur, convert display to the detected pattern
-    if (isNaturalMode) {
-      setDisplayValue(pattern.raw || '');
-      setIsNaturalMode(false);
-    }
-  }, [isNaturalMode, pattern.raw]);
-
   const insertToken = (token: TokenType) => {
     const input = inputRef.current;
     const start = input?.selectionStart ?? displayValue.length;
@@ -127,7 +47,6 @@ export function PatternEditor() {
     const newText = displayValue.substring(0, start) + `[${token}]` + displayValue.substring(end);
     setDisplayValue(newText);
     setPattern({ raw: newText });
-    setIsNaturalMode(false);
     
     setTimeout(() => {
       if (input) {
@@ -139,124 +58,136 @@ export function PatternEditor() {
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 mb-4">
-      <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4 sm:p-5">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <svg className="h-4 w-4 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
-            </svg>
-            <h3 className="text-sm font-semibold text-white">Format de nommage</h3>
-          </div>
-        </div>
-
-        {/* Main input */}
-        <div className="flex gap-2 mb-3">
-          <div className="relative flex-1">
-            <input
-              ref={inputRef}
-              value={displayValue}
-              onChange={(e) => handleInputChange(e.target.value)}
-              onBlur={handleBlur}
-              placeholder="Colle ici un nom de fichier .pdf comme tu le fais chez toi, ou alors choisis le mode par défaut (qui est le nôtre)"
-              className="w-full bg-white/5 border border-white/10 rounded-lg text-white font-mono text-sm h-12 px-4 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 placeholder:text-gray-500 placeholder:font-sans text-ellipsis"
-            />
-          </div>
-          <Button
-            variant="outline"
-            className="h-12 border-white/10 bg-white/5 text-gray-400 hover:text-white"
-            onClick={() => {
-              const defaultRaw = '[date]_[amount]_[currency]_[vendor]_[category]_[invoiceNumber]';
-              setDisplayValue(defaultRaw);
-              setPattern({ raw: defaultRaw });
-              setIsNaturalMode(false);
-            }}
-          >
-            Réinitialiser
-          </Button>
-        </div>
-
-        {/* Help text + token badges */}
-        <div className="flex flex-wrap items-center gap-1.5 mb-4">
-          <span className="text-[10px] text-gray-400 mr-1 italic">Astuce : Sélectionnez un mot ("Apple") et cliquez sur un bouton →</span>
-          {ALL_TOKENS.map((token) => (
-            <Badge
-              key={token}
+    <div className="mx-auto max-w-7xl px-4 mb-8">
+      <div className="rounded-2xl border border-white/10 bg-white/[0.03] overflow-hidden">
+        {/* Header Section */}
+        <div className="bg-white/[0.02] border-b border-white/10 p-4 sm:p-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse" />
+                Format de nommage des fichiers
+              </h3>
+              <p className="text-xs text-gray-400 max-w-lg">
+                Personnalisez le nom final de vos factures. Tapez librement vos séparateurs (tirets, points, espaces) dans le champ ci-dessous.
+              </p>
+            </div>
+            <Button
               variant="outline"
-              className="cursor-pointer select-none transition-all text-[10px] bg-white/[0.03] border-white/5 hover:border-violet-500/50 hover:bg-violet-500/10 text-gray-400 hover:text-violet-300 py-0.5 px-1.5"
-              onClick={() => insertToken(token)}
+              size="sm"
+              className="border-white/10 bg-white/5 text-gray-400 hover:text-white text-xs h-8"
+              onClick={() => {
+                const defaultRaw = '[date]_[amount]_[currency]_[vendor]_[category]_[invoiceNumber]';
+                setPattern({ raw: defaultRaw });
+              }}
             >
-              {TOKEN_INFO[token].label}
-            </Badge>
-          ))}
+              Réinitialiser par défaut
+            </Button>
+          </div>
         </div>
 
-        {/* Options row + Preview */}
-        <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
-          {/* Settings Group */}
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10px] text-gray-500">Date</span>
-              <Select
-                value={(pattern.dateFormat as string) || 'YYMMDD'}
-                onValueChange={(v) => setPattern({ dateFormat: v as DateFormatType })}
-              >
-                <SelectTrigger className="w-28 h-7 text-[11px] bg-white/5 border-white/10 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-900 border-white/10">
-                  <SelectItem value="YYMMDD" className="text-white text-xs">YYMMDD</SelectItem>
-                  <SelectItem value="YYYY-MM-DD" className="text-white text-xs">YYYY-MM-DD</SelectItem>
-                  <SelectItem value="DD-MM-YYYY" className="text-white text-xs">DD-MM-YYYY</SelectItem>
-                </SelectContent>
-              </Select>
+        <div className="p-4 sm:p-6 space-y-6">
+          {/* Main Input Area */}
+          <div className="space-y-3">
+            <div className="relative group">
+              <input
+                ref={inputRef}
+                value={displayValue}
+                onChange={(e) => setPattern({ raw: e.target.value })}
+                placeholder="Ex: [date]-[vendor]-[amount].pdf"
+                className="w-full bg-black/20 border border-white/10 rounded-xl text-white font-mono text-base h-16 px-5 focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500/50 transition-all placeholder:text-gray-700"
+              />
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2 opacity-50 group-hover:opacity-100 transition-opacity">
+                <span className="text-[10px] text-gray-500 font-mono">.pdf</span>
+              </div>
             </div>
 
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10px] text-gray-500">Devise</span>
-              <Select
-                value={(pattern.defaultCurrency as string) || 'CHF'}
-                onValueChange={(v) => setPattern({ defaultCurrency: v })}
-              >
-                <SelectTrigger className="w-16 h-7 text-[11px] bg-white/5 border-white/10 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-900 border-white/10">
-                  <SelectItem value="CHF" className="text-white text-xs">CHF</SelectItem>
-                  <SelectItem value="EUR" className="text-white text-xs">EUR</SelectItem>
-                  <SelectItem value="USD" className="text-white text-xs">USD</SelectItem>
-                  <SelectItem value="GBP" className="text-white text-xs">GBP</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="h-4 w-[1px] bg-white/10 mx-1 hidden sm:block" />
-
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10px] text-gray-500 whitespace-nowrap">Affichage devise</span>
-              <Select
-                value={pattern.showCurrencyAlways ? 'always' : 'conditional'}
-                onValueChange={(v) => setPattern({ showCurrencyAlways: v === 'always' })}
-              >
-                <SelectTrigger className="w-40 h-7 text-[11px] bg-white/5 border-white/10 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-900 border-white/10">
-                  <SelectItem value="conditional" className="text-white text-xs">Masquer si {pattern.defaultCurrency}</SelectItem>
-                  <SelectItem value="always" className="text-white text-xs">Toujours afficher</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[10px] text-gray-500 uppercase tracking-wider font-bold mr-2">Cliquer pour ajouter :</span>
+              {ALL_TOKENS.map((token) => (
+                <button
+                  key={token}
+                  onClick={() => insertToken(token)}
+                  className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/5 hover:border-violet-500/40 hover:bg-violet-500/10 text-[11px] text-gray-300 transition-all active:scale-95"
+                >
+                  {TOKEN_INFO[token].label}
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Preview */}
-          {preview && (
-            <div className="flex-1 rounded-lg bg-emerald-500/5 border border-emerald-500/15 px-3 py-2 flex items-center gap-2 min-w-0 w-full lg:w-auto">
-              <span className="text-[9px] text-emerald-500/60 font-bold uppercase tracking-widest whitespace-nowrap">Aperçu</span>
-              <p className="text-xs text-emerald-400 font-mono truncate">{preview}</p>
+          {/* Quick Settings & Preview Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
+            {/* Options */}
+            <div className="flex flex-wrap items-center gap-6 p-4 rounded-xl bg-white/[0.02] border border-white/5">
+              <div className="space-y-1.5">
+                <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest pl-1">Format Date</span>
+                <Select
+                  value={(pattern.dateFormat as string) || 'YYMMDD'}
+                  onValueChange={(v) => setPattern({ dateFormat: (v || 'YYMMDD') as DateFormatType })}
+                >
+                  <SelectTrigger className="w-36 h-9 bg-white/5 border-white/10 text-white text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-950 border-white/10">
+                    <SelectItem value="YYMMDD">YYMMDD</SelectItem>
+                    <SelectItem value="YYYY-MM-DD">YYYY-MM-DD</SelectItem>
+                    <SelectItem value="DD-MM-YYYY">DD-MM-YYYY</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest pl-1">Devise Locale</span>
+                <Select
+                  value={(pattern.defaultCurrency as string) || 'CHF'}
+                  onValueChange={(v) => setPattern({ defaultCurrency: v || 'CHF' })}
+                >
+                  <SelectTrigger className="w-24 h-9 bg-white/5 border-white/10 text-white text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-950 border-white/10">
+                    <SelectItem value="CHF">CHF</SelectItem>
+                    <SelectItem value="EUR">EUR</SelectItem>
+                    <SelectItem value="USD">USD</SelectItem>
+                    <SelectItem value="GBP">GBP</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest pl-1">Règle Devise</span>
+                <Select
+                  value={pattern.showCurrencyAlways ? 'always' : 'conditional'}
+                  onValueChange={(v) => setPattern({ showCurrencyAlways: v === 'always' })}
+                >
+                  <SelectTrigger className="w-44 h-9 bg-white/5 border-white/10 text-white text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-950 border-white/10">
+                    <SelectItem value="conditional">Masquer si {pattern.defaultCurrency}</SelectItem>
+                    <SelectItem value="always">Toujours afficher</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          )}
+
+            {/* Preview Card */}
+            <div className="relative group overflow-hidden rounded-xl border border-emerald-500/20 bg-emerald-500/[0.02] p-5">
+              <div className="absolute top-0 right-0 p-2">
+                 <div className="text-[9px] font-bold text-emerald-500/50 uppercase tracking-tighter bg-emerald-500/10 px-1.5 py-0.5 rounded">PDF Preview</div>
+              </div>
+              <span className="text-[10px] text-emerald-500/70 font-bold uppercase tracking-widest block mb-3">Exemple de nom généré :</span>
+              <div className="bg-black/40 rounded-lg p-4 border border-white/5 group-hover:border-emerald-500/30 transition-colors">
+                <code className="text-sm sm:text-base text-emerald-400 font-mono break-all leading-relaxed">
+                  {preview || 'votre_facture.pdf'}
+                </code>
+              </div>
+              <p className="text-[10px] text-gray-500 mt-3 italic">
+                Ceci est un aperçu avec des données fictives. Vos vraies factures seront renommées selon ce schéma.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
