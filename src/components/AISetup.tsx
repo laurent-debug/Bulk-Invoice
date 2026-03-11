@@ -1,0 +1,201 @@
+'use client';
+
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { useAppStore } from '@/lib/store';
+import { AI_MODELS } from '@/lib/types';
+import type { AIProvider } from '@/lib/types';
+import { testAIConnection } from '@/lib/ai-extract';
+
+export function AISetup({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+  const { aiConfig, setAIConfig, categories, addCategory, removeCategory } = useAppStore();
+  const [testResult, setTestResult] = useState<{ success: boolean; error?: string } | null>(null);
+  const [testing, setTesting] = useState(false);
+  const [localKey, setLocalKey] = useState(aiConfig.apiKey);
+  const [newCat, setNewCat] = useState('');
+
+  const handleTest = async () => {
+    setTesting(true);
+    setTestResult(null);
+    const config = { ...aiConfig, apiKey: localKey };
+    const result = await testAIConnection(config);
+    setTestResult(result);
+    setTesting(false);
+    if (result.success) {
+      setAIConfig({ apiKey: localKey, enabled: true });
+    }
+  };
+
+  const handleAddCat = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newCat.trim()) {
+      addCategory(newCat.trim());
+      setNewCat('');
+    }
+  };
+
+  const providers: AIProvider[] = ['gemini', 'openai', 'deepseek'];
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="bg-gray-950 border-white/10 text-white max-w-xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-lg">Paramétrages</DialogTitle>
+          <DialogDescription className="text-gray-400 text-sm">
+            Configurez l&apos;IA et vos catégories métiers.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-6">
+          {/* AI Settings Section */}
+          <div className="space-y-4">
+            <h4 className="text-xs font-bold uppercase tracking-widest text-violet-400">Configuration IA</h4>
+            
+            {/* Provider selection */}
+            <div className="grid grid-cols-1 gap-2">
+              {providers.map((p) => {
+                const info = AI_MODELS[p];
+                const isActive = aiConfig.provider === p;
+                return (
+                  <button
+                    key={p}
+                    onClick={() => setAIConfig({ provider: p })}
+                    className={`flex items-center justify-between rounded-lg border p-3 text-left transition-all ${
+                      isActive
+                        ? 'border-violet-500/50 bg-violet-500/10'
+                        : 'border-white/10 bg-white/[0.02] hover:border-white/20'
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-white">{info.name}</span>
+                        {p === 'gemini' && (
+                          <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[10px] h-4">
+                            ⭐ Recommandé
+                          </Badge>
+                        )}
+                      </div>
+                      <span className="text-xs text-gray-400">{info.description}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xs font-mono text-gray-300">~${info.inputCostPer1M}</span>
+                      <span className="text-[10px] text-gray-500 block">/M tokens</span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* API Key input */}
+            <div className="space-y-2">
+              <label className="text-xs text-gray-400">Clé API {AI_MODELS[aiConfig.provider].name}</label>
+              <div className="flex gap-2">
+                <Input
+                  type="password"
+                  value={localKey}
+                  onChange={(e) => setLocalKey(e.target.value)}
+                  placeholder="Collez votre clé API ici…"
+                  className="bg-white/5 border-white/10 text-white text-sm flex-1 h-9"
+                />
+                <Button
+                  onClick={handleTest}
+                  disabled={!localKey || testing}
+                  className="bg-violet-600 hover:bg-violet-500 text-white text-sm px-4 h-9"
+                >
+                  {testing ? 'Test…' : 'Tester'}
+                </Button>
+              </div>
+
+              {testResult && (
+                <div className={`rounded-lg px-3 py-2 text-xs ${
+                  testResult.success
+                    ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
+                    : 'bg-red-500/10 border border-red-500/20 text-red-400'
+                }`}>
+                  {testResult.success ? '✓ Connexion réussie ! L\'IA est activée.' : `✗ ${testResult.error}`}
+                </div>
+              )}
+            </div>
+
+            {/* Vision Mode Toggle */}
+            <div className="flex items-center space-x-2 rounded-lg bg-white/5 border border-white/5 p-3">
+              <Checkbox 
+                id="vision" 
+                checked={aiConfig.visionEnabled} 
+                onCheckedChange={(checked) => setAIConfig({ visionEnabled: !!checked })}
+                className="border-violet-500 data-[state=checked]:bg-violet-500"
+              />
+              <div className="grid gap-1.5 leading-none">
+                <label
+                  htmlFor="vision"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-white cursor-pointer"
+                >
+                  Activer le Mode Vision 👁️
+                </label>
+                <p className="text-xs text-gray-400">
+                  L&apos;IA analyse directement l&apos;image du document. Bien plus précis pour les tickets scannés et manuscrits.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <hr className="border-white/5" />
+
+          {/* Categories Section */}
+          <div className="space-y-4">
+            <h4 className="text-xs font-bold uppercase tracking-widest text-violet-400">Catégories Métiers</h4>
+            <p className="text-xs text-gray-400">
+              Ces catégories aideront l&apos;IA à classer vos factures.
+            </p>
+
+            <form onSubmit={handleAddCat} className="flex gap-2">
+              <Input
+                value={newCat}
+                onChange={(e) => setNewCat(e.target.value)}
+                placeholder="Nouvelle catégorie…"
+                className="bg-white/5 border-white/10 text-white text-sm flex-1 h-9"
+              />
+              <Button type="submit" variant="outline" className="h-9 border-white/10 text-gray-300 hover:text-white">
+                Ajouter
+              </Button>
+            </form>
+
+            <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-1">
+              {categories.map((cat) => (
+                <Badge
+                  key={cat}
+                  className="bg-white/5 hover:bg-red-500/20 text-gray-300 border-white/10 pr-1 gap-1 group transition-all"
+                >
+                  {cat}
+                  <button
+                    onClick={() => removeCategory(cat)}
+                    className="ml-1 rounded-full hover:bg-white/10 p-0.5"
+                  >
+                    <svg className="h-2 w-2 text-gray-500 group-hover:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </Badge>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Footer info */}
+        <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
+          <p className="text-[10px] text-gray-500 max-w-[70%]">
+            🔒 Vos clés API ne sont pas persistées. Le traitement se fait pour chaque session.
+          </p>
+          <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)} className="text-xs text-gray-400 hover:text-white">
+            Fermer
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
