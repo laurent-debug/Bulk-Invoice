@@ -65,7 +65,15 @@ export function DropZone({ onFilesAdded, onLimitReached }: { onFilesAdded: () =>
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       <div
-        {...getRootProps()}
+        {...getRootProps({
+          onClick: (e) => {
+            if (!user) {
+              e.preventDefault();
+              e.stopPropagation();
+              router.push('/login');
+            }
+          }
+        })}
         className={`
           group relative flex min-h-[320px] cursor-pointer flex-col items-center justify-center
           rounded-2xl border-2 border-dashed transition-all duration-300 ease-out
@@ -76,13 +84,6 @@ export function DropZone({ onFilesAdded, onLimitReached }: { onFilesAdded: () =>
           ${(files.length >= MAX_FILES) ? 'cursor-not-allowed opacity-50' : ''}
           ${!user ? 'cursor-pointer' : ''}
         `}
-        onClick={(e) => {
-          if (!user) {
-            e.preventDefault();
-            e.stopPropagation();
-            router.push('/login');
-          }
-        }}
       >
         <input {...getInputProps()} />
 
