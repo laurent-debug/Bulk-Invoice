@@ -15,6 +15,7 @@ interface AppState {
   isPro: boolean;
   filesProcessed: number;
   setAuthData: (user: User | null, isPro: boolean, filesProcessed: number) => void;
+  incrementFilesProcessed: () => void;
 
   // Files
   files: InvoiceFile[];
@@ -58,6 +59,7 @@ export const useAppStore = create<AppState>()(
       isPro: false,
       filesProcessed: 0,
       setAuthData: (user, isPro, filesProcessed) => set({ user, isPro, filesProcessed }),
+      incrementFilesProcessed: () => set((state) => ({ filesProcessed: state.filesProcessed + 1 })),
 
       // ---- Files ----
       files: [],

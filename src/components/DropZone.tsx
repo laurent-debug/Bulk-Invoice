@@ -11,7 +11,7 @@ import { useRouter } from 'next/navigation';
 const MAX_FILES = 50;
 const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20 MB
 
-export function DropZone({ onFilesAdded }: { onFilesAdded: () => void }) {
+export function DropZone({ onFilesAdded, onLimitReached }: { onFilesAdded: () => void; onLimitReached: () => void }) {
   const { files, addFiles, user, isPro, filesProcessed } = useAppStore();
   const router = useRouter();
 
@@ -23,7 +23,8 @@ export function DropZone({ onFilesAdded }: { onFilesAdded: () => void }) {
       }
 
       if (!isPro && filesProcessed >= 5) {
-        // Handled in extraction, but good to block earlier if possible
+        onLimitReached();
+        return;
       }
 
       const remaining = MAX_FILES - files.length;
@@ -50,7 +51,7 @@ export function DropZone({ onFilesAdded }: { onFilesAdded: () => void }) {
       addFiles(invoiceFiles);
       if (invoiceFiles.length > 0) onFilesAdded();
     },
-    [files.length, addFiles, onFilesAdded, user, router, isPro, filesProcessed]
+    [files.length, addFiles, onFilesAdded, user, router, isPro, filesProcessed, onLimitReached]
   );
 
   const { getRootProps, getInputProps, isDragActive, fileRejections } = useDropzone({

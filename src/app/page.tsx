@@ -28,7 +28,7 @@ export default function HomePage() {
   const [progressFileName, setProgressFileName] = useState('');
   const [progressCompleted, setProgressCompleted] = useState(false);
 
-  const { files, updateFile, categories, pattern, addBatchRecord, resetFiles, exportGrouping } = useAppStore();
+  const { files, updateFile, categories, pattern, addBatchRecord, resetFiles, exportGrouping, incrementFilesProcessed, isPro, filesProcessed } = useAppStore();
 
   // Process files after upload: extract text, parse, generate thumbnails
   const processFiles = useCallback(async () => {
@@ -42,6 +42,11 @@ export default function HomePage() {
     setProgressCompleted(false);
 
     for (let i = 0; i < pendingFiles.length; i++) {
+      if (!isPro && filesProcessed >= 5) {
+        setUpgradeOpen(true);
+        break;
+      }
+
       const file = pendingFiles[i];
       setProgressCurrent(i + 1);
       setProgressFileName(file.originalName);
@@ -122,6 +127,12 @@ export default function HomePage() {
           ocrUsed,
           extractionStatus: 'done',
         });
+
+        // Increment local counter
+        if (!isPro) {
+          incrementFilesProcessed();
+        }
+
         console.log(`[Extraction] ✓ Done: ${file.originalName}`);
       } catch (error) {
         console.error(`[Extraction] ✗ Failed: ${file.originalName}`, error);
@@ -211,7 +222,10 @@ export default function HomePage() {
         <PatternEditor />
 
         {/* Drop zone (always visible) */}
-        <DropZone onFilesAdded={handleFilesAdded} />
+        <DropZone 
+          onFilesAdded={handleFilesAdded} 
+          onLimitReached={() => setUpgradeOpen(true)}
+        />
 
         {/* File table (visible after files added) */}
         {showWorkspace && files.length > 0 && (

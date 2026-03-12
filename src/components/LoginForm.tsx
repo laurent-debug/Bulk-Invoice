@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { login, signup } from '@/app/auth-actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +10,15 @@ import Link from 'next/link';
 export function LoginForm({ serverError }: { serverError?: string }) {
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [passwordError, setPasswordError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const success = searchParams.get('success');
+    if (success) {
+      setSuccessMessage(success);
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     // If it's a signup, let's just make sure passwords match before submitting to server action
@@ -43,6 +53,12 @@ export function LoginForm({ serverError }: { serverError?: string }) {
         {(serverError || passwordError) && (
           <div className="mb-6 rounded-lg bg-red-500/10 p-3 text-sm text-red-500 border border-red-500/20 text-center">
             {passwordError || serverError}
+          </div>
+        )}
+
+        {successMessage && (
+          <div className="mb-6 rounded-lg bg-emerald-500/10 p-3 text-sm text-emerald-500 border border-emerald-500/20 text-center animate-in fade-in duration-500">
+            {successMessage}
           </div>
         )}
 
