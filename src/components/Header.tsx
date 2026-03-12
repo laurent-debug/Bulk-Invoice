@@ -13,16 +13,41 @@ export function Header({
   onHistoryOpen: () => void;
 }) {
   const [user, setUser] = useState<User | null>(null);
+  const [isPro, setIsPro] = useState(false);
   const supabase = createClient();
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data?.user || null);
-    });
+    const fetchUserAndProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user || null);
+      
+      if (user) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('is_pro')
+          .eq('id', user.id)
+          .single();
+        setIsPro(!!data?.is_pro);
+      } else {
+        setIsPro(false);
+      }
+    };
+
+    fetchUserAndProfile();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         setUser(session?.user || null);
+        if (session?.user) {
+          const { data } = await supabase
+            .from('profiles')
+            .select('is_pro')
+            .eq('id', session.user.id)
+            .single();
+          setIsPro(!!data?.is_pro);
+        } else {
+          setIsPro(false);
+        }
       }
     );
 
@@ -42,7 +67,14 @@ export function Header({
             </svg>
           </div>
           <div>
-            <h1 className="text-lg font-bold text-white tracking-tight">Bulk Invoice Manager</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-lg font-bold text-white tracking-tight">Bulk Invoice Manager</h1>
+              {isPro && (
+                <span className="inline-flex items-center rounded-full bg-violet-500/10 px-2 py-0.5 text-[10px] font-medium text-violet-400 border border-violet-500/20">
+                  PRO
+                </span>
+              )}
+            </div>
             <p className="text-[10px] text-gray-400 -mt-0.5 tracking-widest uppercase">Smart Organization</p>
           </div>
         </div>
