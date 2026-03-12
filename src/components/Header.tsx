@@ -32,8 +32,8 @@ export function Header({
             </svg>
           </div>
           <div>
-            <h1 className="text-lg font-bold text-white tracking-tight">Bulk Invoice</h1>
-            <p className="text-[10px] text-gray-400 -mt-0.5 tracking-widest uppercase">Formatting</p>
+            <h1 className="text-lg font-bold text-white tracking-tight">Bulk Invoice Manager</h1>
+            <p className="text-[10px] text-gray-400 -mt-0.5 tracking-widest uppercase">Smart Organization</p>
           </div>
         </div>
 

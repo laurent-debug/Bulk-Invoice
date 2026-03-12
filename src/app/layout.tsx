@@ -13,7 +13,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Bulk Invoice Formatting — Renommez vos factures en masse",
+  title: "Bulk Invoice Manager — Renommez vos factures en masse",
   description: "Uploadez vos factures PDF, extrayez les données automatiquement, renommez-les selon votre format et exportez en ZIP ou Google Drive.",
   keywords: ["factures", "PDF", "renommage", "comptabilité", "OCR", "bulk rename"],
 };
