@@ -13,9 +13,21 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Bulk Invoice Manager — Renommez vos factures en masse",
-  description: "Uploadez vos factures PDF, extrayez les données automatiquement, renommez-les selon votre format et exportez en ZIP ou Google Drive.",
-  keywords: ["factures", "PDF", "renommage", "comptabilité", "OCR", "bulk rename"],
+  title: "Bulk Invoice Manager Pro | Automate Your Invoice Renaming",
+  description: "Securely upload PDF invoices, extract data automatically with AI, and rename them in bulk. Export smart ZIP folders organized by vendor, category, or month.",
+  keywords: ["invoice", "bulk rename", "PDF extraction", "accounting software", "OCR AI", "receipts organizer"],
+  openGraph: {
+    title: "Bulk Invoice Manager Pro",
+    description: "Securely upload PDF invoices, extract data automatically with AI, and rename them in bulk.",
+    type: "website",
+    locale: "en_US",
+    siteName: "Bulk Invoice Manager Pro",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Bulk Invoice Manager Pro",
+    description: "Automate your invoice renaming with secure, server-side AI.",
+  },
 };
 
 export default function RootLayout({
@@ -24,7 +36,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr" className="dark">
+    <html lang="en" className="dark">
       <body
         className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased bg-gray-950 text-white min-h-screen`}
       >

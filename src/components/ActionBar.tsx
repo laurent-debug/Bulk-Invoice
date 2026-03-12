@@ -13,7 +13,7 @@ export function ActionBar({
   onResetAll: () => void;
   exporting: boolean;
 }) {
-  const { files, exportGrouping, setExportGrouping } = useAppStore();
+  const { files } = useAppStore();
   const selectedCount = files.filter((f) => f.isSelected).length;
 
   if (files.length === 0) return null;
@@ -38,25 +38,6 @@ export function ActionBar({
             </svg>
             Reset
           </Button>
-
-          {/* Grouping Select */}
-          <div className="flex items-center gap-1.5 mr-2">
-            <span className="text-xs text-gray-500 uppercase tracking-wider font-bold">Group by:</span>
-            <Select
-              value={exportGrouping}
-              onValueChange={(v) => setExportGrouping(v as any)}
-            >
-              <SelectTrigger className="h-8 w-28 bg-white/5 border-white/10 text-white text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-gray-950 border-white/10">
-                <SelectItem value="none" className="text-xs">None</SelectItem>
-                <SelectItem value="vendor" className="text-xs">Vendor</SelectItem>
-                <SelectItem value="category" className="text-xs">Category</SelectItem>
-                <SelectItem value="month" className="text-xs">Month</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
 
           {/* Download ZIP */}
           <Button

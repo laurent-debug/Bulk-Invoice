@@ -56,12 +56,14 @@ export default async function LoginPage({
 
           <div className="mt-4 flex flex-col gap-3">
             <Button
+              type="submit"
               formAction={login}
               className="w-full bg-violet-600 hover:bg-violet-700 text-white"
             >
               Sign In
             </Button>
             <Button
+              type="submit"
               formAction={signup}
               variant="outline"
               className="w-full border-white/10 bg-transparent text-white hover:bg-white/5"

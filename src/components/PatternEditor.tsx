@@ -20,7 +20,7 @@ const TOKEN_INFO: Record<TokenType, { label: string; example: string }> = {
 const ALL_TOKENS: TokenType[] = ['date', 'amount', 'currency', 'vendor', 'category', 'invoiceNumber'];
 
 export function PatternEditor() {
-  const { pattern, setPattern, categories, addCategory, removeCategory } = useAppStore();
+  const { pattern, setPattern, categories, addCategory, removeCategory, exportGrouping, setExportGrouping } = useAppStore();
   const inputRef = useRef<HTMLInputElement>(null);
   const [displayValue, setDisplayValue] = useState(pattern.raw || '');
   const [preview, setPreview] = useState('');
@@ -250,6 +250,36 @@ export function PatternEditor() {
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Export Grouping Manager */}
+          <div className="mt-8 pt-6 border-t border-white/5 space-y-4">
+            <div>
+              <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-violet-500/50" />
+                ZIP Export Grouping
+              </h4>
+              <p className="text-xs text-gray-400 mt-1">
+                Choose how your renamed files should be organized inside the downloaded ZIP archive.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-2 max-w-sm">
+              <Select
+                value={exportGrouping}
+                onValueChange={(v) => setExportGrouping(v as any)}
+              >
+                <SelectTrigger className="w-full h-10 bg-white/5 border-white/10 text-white text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-950 border-white/10">
+                  <SelectItem value="none">Flat list (No sub-folders)</SelectItem>
+                  <SelectItem value="vendor">Group by Vendor</SelectItem>
+                  <SelectItem value="category">Group by Category</SelectItem>
+                  <SelectItem value="month">Group by Month</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
         </div>
