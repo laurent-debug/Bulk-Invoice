@@ -29,7 +29,7 @@ export function LoginForm({ serverError }: { serverError?: string }) {
       
       if (password !== confirmPassword) {
         e.preventDefault();
-        setPasswordError('Les mots de passe ne correspondent pas.');
+        setPasswordError('Passwords do not match.');
         return;
       }
     }
@@ -41,12 +41,12 @@ export function LoginForm({ serverError }: { serverError?: string }) {
       <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl">
         <div className="mb-8 text-center">
           <h1 className="text-2xl font-bold text-white tracking-tight">
-            {mode === 'login' ? 'Bon retour !' : 'Créer un compte'}
+            {mode === 'login' ? 'Welcome Back!' : 'Create Account'}
           </h1>
           <p className="mt-2 text-sm text-gray-400">
             {mode === 'login' 
-              ? 'Connectez-vous pour continuer.' 
-              : 'Testez gratuitement le renommage de factures par IA.'}
+              ? 'Log in to continue.' 
+              : 'Test AI-powered invoice renaming for free.'}
           </p>
         </div>
 
@@ -71,7 +71,7 @@ export function LoginForm({ serverError }: { serverError?: string }) {
               id="email"
               name="email"
               type="email"
-              placeholder="vous@exemple.com"
+              placeholder="you@example.com"
               required
               className="bg-black/50 border-white/10 text-white placeholder:text-gray-600 focus-visible:ring-violet-500"
             />
@@ -80,14 +80,14 @@ export function LoginForm({ serverError }: { serverError?: string }) {
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
               <label htmlFor="password" className="text-sm font-medium text-gray-300">
-                Mot de passe
+                Password
               </label>
               {mode === 'login' && (
                 <Link 
                   href="/forgot-password" 
                   className="text-xs text-violet-400 hover:text-violet-300 transition-colors"
                 >
-                  Mot de passe oublié ?
+                  Forgot password?
                 </Link>
               )}
             </div>
@@ -103,7 +103,7 @@ export function LoginForm({ serverError }: { serverError?: string }) {
           {mode === 'signup' && (
             <div className="flex flex-col gap-2">
               <label htmlFor="confirmPassword" className="text-sm font-medium text-gray-300">
-                Confirmer le mot de passe
+                Confirm Password
               </label>
               <Input
                 id="confirmPassword"
@@ -121,11 +121,11 @@ export function LoginForm({ serverError }: { serverError?: string }) {
               formAction={mode === 'login' ? login : signup}
               className="w-full bg-violet-600 hover:bg-violet-700 text-white"
             >
-              {mode === 'login' ? 'Se connecter' : 'S\'inscrire'}
+              {mode === 'login' ? 'Log In' : 'Sign Up'}
             </Button>
             
             <div className="text-center text-sm text-gray-400">
-              {mode === 'login' ? "Pas encore de compte ? " : "Vous avez déjà un compte ? "}
+              {mode === 'login' ? "Don't have an account? " : "Already have an account? "}
               <button
                 type="button"
                 className="text-white hover:text-violet-400 font-medium underline underline-offset-4"
@@ -134,7 +134,7 @@ export function LoginForm({ serverError }: { serverError?: string }) {
                   setPasswordError('');
                 }}
               >
-                {mode === 'login' ? 'Créer un compte' : 'Se connecter'}
+                {mode === 'login' ? 'Create Account' : 'Log In'}
               </button>
             </div>
           </div>

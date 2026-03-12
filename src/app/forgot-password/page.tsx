@@ -18,7 +18,7 @@ export default async function ForgotPasswordPage({
         <div className="mb-8 text-center">
           <h1 className="text-2xl font-bold text-white tracking-tight">Reset Password</h1>
           <p className="mt-2 text-sm text-gray-400">
-            Enter your email to receive a password reset link.
+            Enter your email and we'll send you a link to reset your password.
           </p>
         </div>
 
@@ -51,16 +51,17 @@ export default async function ForgotPasswordPage({
 
           <Button
             type="submit"
-            className="mt-2 w-full bg-violet-600 hover:bg-violet-700 text-white"
+            formAction={forgotPassword}
+            className="w-full bg-violet-600 hover:bg-violet-700 text-white"
           >
             Send Reset Link
           </Button>
 
           <Link
             href="/login"
-            className="text-center text-xs text-gray-400 hover:text-white transition-colors"
+            className="mt-4 text-center text-sm text-gray-400 hover:text-white transition-colors"
           >
-            Back to Sign In
+            Back to Login
           </Link>
         </form>
       </div>

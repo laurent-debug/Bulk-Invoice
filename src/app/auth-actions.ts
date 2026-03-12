@@ -46,7 +46,7 @@ export async function signup(formData: FormData) {
   }
 
   revalidatePath('/', 'layout');
-  redirect('/login?success=Votre compte a été créé ! Merci de cliquer sur le lien de confirmation envoyé par email pour activer votre essai gratuit.');
+  redirect('/login?success=Account created! Please check your email for the confirmation link to activate your free trial.');
 }
 
 export async function logout() {
