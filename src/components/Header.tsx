@@ -12,24 +12,22 @@ export function Header({
 }: {
   onHistoryOpen: () => void;
 }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isPro, setIsPro] = useState(false);
+  const { user, isPro, setAuthData } = useAppStore();
   const supabase = createClient();
 
   useEffect(() => {
     const fetchUserAndProfile = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      setUser(user || null);
       
       if (user) {
         const { data } = await supabase
           .from('profiles')
-          .select('is_pro')
+          .select('is_pro, files_processed')
           .eq('id', user.id)
           .single();
-        setIsPro(!!data?.is_pro);
+        setAuthData(user, !!data?.is_pro, data?.files_processed || 0);
       } else {
-        setIsPro(false);
+        setAuthData(null, false, 0);
       }
     };
 
@@ -37,16 +35,15 @@ export function Header({
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        setUser(session?.user || null);
         if (session?.user) {
           const { data } = await supabase
             .from('profiles')
-            .select('is_pro')
+            .select('is_pro, files_processed')
             .eq('id', session.user.id)
             .single();
-          setIsPro(!!data?.is_pro);
+          setAuthData(session.user, !!data?.is_pro, data?.files_processed || 0);
         } else {
-          setIsPro(false);
+          setAuthData(null, false, 0);
         }
       }
     );

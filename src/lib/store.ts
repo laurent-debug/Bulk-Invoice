@@ -5,10 +5,17 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
 import type { InvoiceFile, NamingPattern, BatchRecord, ExportGrouping } from './types';
+import { type User } from '@supabase/supabase-js';
 import { DEFAULT_PATTERN, DEFAULT_CATEGORIES } from './types';
 import { generateFileName, deduplicateNames } from './naming-utils';
 
 interface AppState {
+  // Auth
+  user: User | null;
+  isPro: boolean;
+  filesProcessed: number;
+  setAuthData: (user: User | null, isPro: boolean, filesProcessed: number) => void;
+
   // Files
   files: InvoiceFile[];
   addFiles: (files: InvoiceFile[]) => void;
@@ -46,6 +53,12 @@ interface AppState {
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
+      // ---- Auth ----
+      user: null,
+      isPro: false,
+      filesProcessed: 0,
+      setAuthData: (user, isPro, filesProcessed) => set({ user, isPro, filesProcessed }),
+
       // ---- Files ----
       files: [],
 

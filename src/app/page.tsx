@@ -48,14 +48,10 @@ export default function HomePage() {
       updateFile(file.id, { extractionStatus: 'extracting' });
 
       try {
-        // Step 1: Extract text (embedded or OCR)
+        // Step 2: Extract text (embedded or OCR)
         console.log(`[Extraction] Processing: ${file.originalName}`);
         const { text, ocrUsed } = await smartExtract(file.fileBlob);
         console.log(`[Extraction] Text extracted (${text.length} chars, OCR: ${ocrUsed}):`, text.substring(0, 300));
-
-        // Step 2: Parse with regex (always, as baseline)
-        const regexData = parseInvoiceData(text);
-        console.log(`[Extraction] Regex parsed:`, regexData);
 
         // Step 3: Generate thumbnail
         let thumbnailDataUrl = '';
@@ -65,13 +61,13 @@ export default function HomePage() {
           console.warn(`[Extraction] Thumbnail failed:`, thumbError);
         }
 
-        // Step 4: AI extraction (PRIMARY)
+        // Step 4: AI extraction (ONLY)
         // Uses VISION mode (sends page images to AI) for best accuracy
-        let finalDate = regexData.date;
-        let finalAmount = regexData.amount;
-        let finalCurrency = regexData.currency;
-        let finalVendor = regexData.vendor;
-        let finalInvoiceNumber = regexData.invoiceNumber;
+        let finalDate = null;
+        let finalAmount = null;
+        let finalCurrency = pattern.defaultCurrency;
+        let finalVendor = '';
+        let finalInvoiceNumber = '';
         let finalCategory = '';
 
         try {
@@ -106,11 +102,13 @@ export default function HomePage() {
           if (aiError.message === 'LIMIT_REACHED') {
             setUpgradeOpen(true);
             setProgressCompleted(true);
+            updateFile(file.id, { extractionStatus: 'pending' }); // Reset status so it can be retried
             break; // Stop processing the rest of the queue
           } else if (aiError.message === 'UNAUTHORIZED') {
             window.location.href = '/login';
             return;
           }
+          throw aiError; // Throw so the file is marked as failed
         }
 
         updateFile(file.id, {

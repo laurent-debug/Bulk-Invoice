@@ -6,14 +6,26 @@ import { v4 as uuidv4 } from 'uuid';
 import { useAppStore } from '@/lib/store';
 import type { InvoiceFile } from '@/lib/types';
 
+import { useRouter } from 'next/navigation';
+
 const MAX_FILES = 50;
 const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20 MB
 
 export function DropZone({ onFilesAdded }: { onFilesAdded: () => void }) {
-  const { files, addFiles } = useAppStore();
+  const { files, addFiles, user, isPro, filesProcessed } = useAppStore();
+  const router = useRouter();
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
+      if (!user) {
+        router.push('/login');
+        return;
+      }
+
+      if (!isPro && filesProcessed >= 5) {
+        // Handled in extraction, but good to block earlier if possible
+      }
+
       const remaining = MAX_FILES - files.length;
       const filesToProcess = acceptedFiles.slice(0, remaining);
 
@@ -38,7 +50,7 @@ export function DropZone({ onFilesAdded }: { onFilesAdded: () => void }) {
       addFiles(invoiceFiles);
       if (invoiceFiles.length > 0) onFilesAdded();
     },
-    [files.length, addFiles, onFilesAdded]
+    [files.length, addFiles, onFilesAdded, user, router, isPro, filesProcessed]
   );
 
   const { getRootProps, getInputProps, isDragActive, fileRejections } = useDropzone({
@@ -46,7 +58,7 @@ export function DropZone({ onFilesAdded }: { onFilesAdded: () => void }) {
     accept: { 'application/pdf': ['.pdf'] },
     maxSize: MAX_FILE_SIZE,
     maxFiles: MAX_FILES - files.length,
-    disabled: files.length >= MAX_FILES,
+    disabled: files.length >= MAX_FILES || (!user), // Disable dropzone if no user
   });
 
   return (
@@ -60,8 +72,16 @@ export function DropZone({ onFilesAdded }: { onFilesAdded: () => void }) {
             ? 'border-violet-400 bg-violet-500/10 scale-[1.02] shadow-2xl shadow-violet-500/20'
             : 'border-white/20 bg-white/[0.02] hover:border-violet-400/50 hover:bg-white/[0.04] hover:shadow-xl hover:shadow-violet-500/5'
           }
-          ${files.length >= MAX_FILES ? 'cursor-not-allowed opacity-50' : ''}
+          ${(files.length >= MAX_FILES) ? 'cursor-not-allowed opacity-50' : ''}
+          ${!user ? 'cursor-pointer' : ''}
         `}
+        onClick={(e) => {
+          if (!user) {
+            e.preventDefault();
+            e.stopPropagation();
+            router.push('/login');
+          }
+        }}
       >
         <input {...getInputProps()} />
 
@@ -83,10 +103,39 @@ export function DropZone({ onFilesAdded }: { onFilesAdded: () => void }) {
         </div>
 
         {/* Text */}
-        <p className="text-lg font-medium text-white mb-2">
-          {isDragActive ? 'Drop your files here' : 'Drag & drop invoice PDFs here'}
-        </p>
-          or <span className="text-violet-400 underline underline-offset-2">browse files</span>
+        <div className="text-center">
+          {!user ? (
+            <>
+              <p className="text-xl font-bold text-white mb-2">
+                Test with your invoices (0 / 5 free)
+              </p>
+              <button 
+                className="mt-2 rounded-lg bg-violet-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-violet-500/30 hover:bg-violet-500 transition-colors"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  router.push('/login');
+                }}
+              >
+                Sign up to test for free
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="text-lg font-medium text-white mb-2">
+                {isDragActive ? 'Drop your files here' : 'Drag & drop invoice PDFs here'}
+              </p>
+              <p className="text-gray-400">
+                or <span className="text-violet-400 underline underline-offset-2">browse files</span>
+              </p>
+              {!isPro && (
+                <div className="mt-3 inline-flex items-center rounded-full bg-violet-500/10 px-3 py-1 text-sm font-medium text-violet-300 border border-violet-500/20">
+                  Free Trial: {filesProcessed} / 5 invoices used
+                </div>
+              )}
+            </>
+          )}
+        </div>
 
         {/* Constraints */}
         <div className="flex items-center gap-4 text-xs text-gray-500">
