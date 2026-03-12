@@ -3,6 +3,7 @@
 import { createClient } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
+import { headers } from 'next/headers';
 
 export async function login(formData: FormData) {
   const supabase = await createClient();
@@ -31,7 +32,13 @@ export async function signup(formData: FormData) {
     password: formData.get('password') as string,
   };
 
-  const { error } = await supabase.auth.signUp(data);
+  const origin = (await headers()).get('origin');
+  const { error } = await supabase.auth.signUp({
+    ...data,
+    options: {
+      emailRedirectTo: `${origin}/auth/callback`,
+    },
+  });
 
   if (error) {
     console.error('Signup error details:', error);
