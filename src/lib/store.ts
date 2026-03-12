@@ -4,8 +4,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
-import type { InvoiceFile, NamingPattern, AIConfig, BatchRecord, ExportGrouping } from './types';
-import { DEFAULT_PATTERN, DEFAULT_CATEGORIES, AI_MODELS } from './types';
+import type { InvoiceFile, NamingPattern, BatchRecord, ExportGrouping } from './types';
+import { DEFAULT_PATTERN, DEFAULT_CATEGORIES } from './types';
 import { generateFileName, deduplicateNames } from './naming-utils';
 
 interface AppState {
@@ -27,9 +27,6 @@ interface AppState {
   exportGrouping: ExportGrouping;
   setExportGrouping: (grouping: ExportGrouping) => void;
 
-  // AI Config
-  aiConfig: AIConfig;
-  setAIConfig: (config: Partial<AIConfig>) => void;
 
   // Categories
   categories: string[];
@@ -113,28 +110,6 @@ export const useAppStore = create<AppState>()(
       exportGrouping: 'none',
       setExportGrouping: (grouping) => set({ exportGrouping: grouping }),
 
-      // ---- AI Config ----
-      aiConfig: {
-        provider: 'gemini',
-        apiKey: '',
-        model: AI_MODELS.gemini.model,
-        enabled: false,
-        visionEnabled: true,
-      },
-
-      setAIConfig: (updates) =>
-        set((state) => {
-          const newConfig = { ...state.aiConfig, ...updates };
-          // Auto-set model when provider changes
-          if (updates.provider && updates.provider !== state.aiConfig.provider) {
-            newConfig.model = AI_MODELS[updates.provider].model;
-          }
-          // Enable when key is provided
-          if (updates.apiKey !== undefined) {
-            newConfig.enabled = updates.apiKey.length > 0;
-          }
-          return { aiConfig: newConfig };
-        }),
 
       // ---- Categories ----
       categories: DEFAULT_CATEGORIES,
@@ -187,7 +162,6 @@ export const useAppStore = create<AppState>()(
       name: 'bulk-invoice-storage',
       partialize: (state) => ({
         pattern: state.pattern,
-        aiConfig: { ...state.aiConfig, apiKey: '', enabled: false },
         categories: state.categories,
         history: state.history,
         exportGrouping: state.exportGrouping,
@@ -208,11 +182,6 @@ export const useAppStore = create<AppState>()(
           } else {
             merged.pattern = { ...merged.pattern, raw: '[date]_[amount]_[currency]_[vendor]_[category]_[invoiceNumber]' };
           }
-        }
-
-        // Ensure visionEnabled exists on old configs
-        if (merged.aiConfig && merged.aiConfig.visionEnabled === undefined) {
-          merged.aiConfig.visionEnabled = true;
         }
 
         // Ensure showCurrencyAlways exists on old configs

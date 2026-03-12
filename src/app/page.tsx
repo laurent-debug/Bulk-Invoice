@@ -6,7 +6,7 @@ import { DropZone } from '@/components/DropZone';
 import { PatternEditor } from '@/components/PatternEditor';
 import { FileTable } from '@/components/FileTable';
 import { ActionBar } from '@/components/ActionBar';
-import { AISetup } from '@/components/AISetup';
+import { UpgradeModal } from '@/components/UpgradeModal';
 import { ProgressModal } from '@/components/ProgressModal';
 import { HistoryPanel } from '@/components/HistoryPanel';
 import { useAppStore } from '@/lib/store';
@@ -16,7 +16,7 @@ import { createAndDownloadZip } from '@/lib/zip-utils';
 
 export default function HomePage() {
   const [historyOpen, setHistoryOpen] = useState(false);
-  const [aiSetupOpen, setAISetupOpen] = useState(false);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [showWorkspace, setShowWorkspace] = useState(false);
   const [exporting, setExporting] = useState(false);
 
@@ -28,7 +28,7 @@ export default function HomePage() {
   const [progressFileName, setProgressFileName] = useState('');
   const [progressCompleted, setProgressCompleted] = useState(false);
 
-  const { files, updateFile, aiConfig, categories, pattern, addBatchRecord, resetFiles, exportGrouping } = useAppStore();
+  const { files, updateFile, categories, pattern, addBatchRecord, resetFiles, exportGrouping } = useAppStore();
 
   // Process files after upload: extract text, parse, generate thumbnails
   const processFiles = useCallback(async () => {
@@ -65,7 +65,7 @@ export default function HomePage() {
           console.warn(`[Extraction] Thumbnail failed:`, thumbError);
         }
 
-        // Step 4: AI extraction (PRIMARY when enabled)
+        // Step 4: AI extraction (PRIMARY)
         // Uses VISION mode (sends page images to AI) for best accuracy
         let finalDate = regexData.date;
         let finalAmount = regexData.amount;
@@ -74,41 +74,42 @@ export default function HomePage() {
         let finalInvoiceNumber = regexData.invoiceNumber;
         let finalCategory = '';
 
-        if (aiConfig.enabled && aiConfig.apiKey) {
+        try {
+          let aiResult;
+          
           try {
-            let aiResult;
-
-            // Try vision mode first (if enabled)
-            const canDoVision = aiConfig.visionEnabled && aiConfig.provider !== 'deepseek';
-            
-            try {
-              if (canDoVision) {
-                console.log(`[Extraction] Rendering PDF pages as images for vision...`);
-                const pageImages = await renderPagesAsImages(file.fileBlob, 2);
-                console.log(`[Extraction] Sending ${pageImages.length} image(s) to AI vision...`);
-                aiResult = await aiExtractWithVision(pageImages, text, categories, aiConfig, pattern.defaultCurrency);
-              } else {
-                throw new Error('Vision mode disabled or not supported');
-              }
-            } catch (visionError) {
-              console.log(`[Extraction] Using text mode (Reason: ${visionError instanceof Error ? visionError.message : 'failed'})`);
-              // Fall back to text-only AI
-              if (text.length > 5) {
-                aiResult = await aiExtractFields(text, categories, aiConfig, pattern.defaultCurrency);
-              }
+            console.log(`[Extraction] Rendering PDF pages as images for vision...`);
+            const pageImages = await renderPagesAsImages(file.fileBlob, 2);
+            console.log(`[Extraction] Sending ${pageImages.length} image(s) to AI vision...`);
+            aiResult = await aiExtractWithVision(pageImages, text, categories, pattern.defaultCurrency);
+          } catch (visionError) {
+            console.log(`[Extraction] Using text mode (Reason: ${visionError instanceof Error ? visionError.message : 'failed'})`);
+            // Fall back to text-only AI
+            if (text.length > 5) {
+              aiResult = await aiExtractFields(text, categories, pattern.defaultCurrency);
             }
+          }
 
-            if (aiResult) {
-              console.log(`[Extraction] AI result:`, aiResult);
-              if (aiResult.date) finalDate = aiResult.date;
-              if (aiResult.amount) finalAmount = aiResult.amount;
-              if (aiResult.currency) finalCurrency = aiResult.currency;
-              if (aiResult.vendor) finalVendor = aiResult.vendor;
-              if (aiResult.category) finalCategory = aiResult.category;
-              if (aiResult.invoiceNumber) finalInvoiceNumber = aiResult.invoiceNumber;
-            }
-          } catch (aiError) {
-            console.warn(`[Extraction] AI failed, using regex fallback:`, aiError);
+          if (aiResult) {
+            console.log(`[Extraction] AI result:`, aiResult);
+            if (aiResult.date) finalDate = aiResult.date;
+            if (aiResult.amount) finalAmount = aiResult.amount;
+            if (aiResult.currency) finalCurrency = aiResult.currency;
+            if (aiResult.vendor) finalVendor = aiResult.vendor;
+            if (aiResult.category) finalCategory = aiResult.category;
+            if (aiResult.invoiceNumber) finalInvoiceNumber = aiResult.invoiceNumber;
+          }
+        } catch (error) {
+          const aiError = error as Error;
+          console.warn(`[Extraction] AI failed:`, aiError.message);
+          
+          if (aiError.message === 'LIMIT_REACHED') {
+            setUpgradeOpen(true);
+            setProgressCompleted(true);
+            break; // Stop processing the rest of the queue
+          } else if (aiError.message === 'UNAUTHORIZED') {
+            window.location.href = '/login';
+            return;
           }
         }
 
@@ -133,7 +134,7 @@ export default function HomePage() {
     }
 
     setProgressCompleted(true);
-  }, [updateFile, aiConfig, categories, pattern]);
+  }, [updateFile, categories, pattern]);
 
   const handleFilesAdded = useCallback(() => {
     setShowWorkspace(true);
@@ -174,7 +175,6 @@ export default function HomePage() {
     <div className="min-h-screen flex flex-col">
       <Header
         onHistoryOpen={() => setHistoryOpen(true)}
-        onAISetupOpen={() => setAISetupOpen(true)}
       />
 
       <main className="flex-1">
@@ -186,7 +186,7 @@ export default function HomePage() {
               <span className="bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent"> in bulk</span>
             </h2>
             <p className="text-gray-400 max-w-xl mx-auto text-sm sm:text-base px-6">
-              Upload your PDFs, data extraction is fully automatic. Files stay in your browser unless AI processing is enabled (BYOK).
+              Upload your PDFs, data extraction is fully automatic via our secure server-side AI processing.
             </p>
 
             {/* Feature badges */}
@@ -202,10 +202,7 @@ export default function HomePage() {
                   🔒 Original files are never stored
                 </span>
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-gray-400 font-medium whitespace-nowrap">
-                  🔑 API keys are never saved
-                </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-gray-400 font-medium whitespace-nowrap">
-                  🌐 100% processing in your browser by default
+                  🌐 Secure Server-Side Processing
                 </span>
               </div>
             </div>
@@ -236,8 +233,8 @@ export default function HomePage() {
       )}
 
       {/* Modals */}
-      <AISetup open={aiSetupOpen} onOpenChange={setAISetupOpen} />
       <HistoryPanel open={historyOpen} onOpenChange={setHistoryOpen} />
+      <UpgradeModal open={upgradeOpen} onOpenChange={setUpgradeOpen} />
       <ProgressModal
         open={progressOpen}
         onOpenChange={setProgressOpen}

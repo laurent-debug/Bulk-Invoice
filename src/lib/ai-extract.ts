@@ -2,7 +2,6 @@
 // AI Extraction — BYOK (Bring Your Own Key)
 // Uses server-side proxy at /api/ai to avoid CORS issues
 // ============================================================
-import type { AIConfig } from './types';
 
 export interface AIExtractionResult {
   date?: string;
@@ -44,13 +43,12 @@ ${text.substring(0, 4000)}`;
 export async function aiExtractFields(
   text: string,
   categories: string[],
-  config: AIConfig,
   defaultCurrency: string = 'CHF'
 ): Promise<AIExtractionResult> {
   const prompt = buildPrompt(text, categories, defaultCurrency);
 
   try {
-    const response = await callAIProxy(prompt, config);
+    const response = await callAIProxy(prompt);
     console.log('[AI] Raw response:', response);
     return parseAIResponse(response);
   } catch (error) {
@@ -67,13 +65,8 @@ export async function aiExtractWithVision(
   images: string[],
   text: string,
   categories: string[],
-  config: AIConfig,
   defaultCurrency: string = 'CHF'
 ): Promise<AIExtractionResult> {
-  // DeepSeek doesn't support vision — fall back to text mode
-  if (config.provider === 'deepseek') {
-    return aiExtractFields(text, categories, config, defaultCurrency);
-  }
 
   const prompt = `Tu es un extracteur de factures expert. Analyse cette image de facture/ticket de caisse.
 Retourne UNIQUEMENT un JSON valide, sans backticks, sans markdown, sans texte avant/après.
@@ -95,41 +88,27 @@ Règles strictes :
 - Cherche le TOTAL TTC (pas les sous-totaux)`;
 
   try {
-    console.log(`[AI Vision] Sending ${images.length} page image(s) to ${config.provider}...`);
-    const response = await callAIProxy(prompt, config, images);
+    console.log(`[AI Vision] Sending ${images.length} page image(s)...`);
+    const response = await callAIProxy(prompt, images);
     console.log('[AI Vision] Raw response:', response);
     return parseAIResponse(response);
   } catch (error) {
     console.error('[AI Vision] Failed:', error);
     // Fall back to text-based extraction
     console.log('[AI Vision] Falling back to text mode...');
-    return aiExtractFields(text, categories, config, defaultCurrency);
+    return aiExtractFields(text, categories, defaultCurrency);
   }
 }
 
-/**
- * Test if the provided API key works
- */
-export async function testAIConnection(config: AIConfig): Promise<{ success: boolean; error?: string }> {
-  try {
-    const response = await callAIProxy('Réponds uniquement avec le mot "OK".', config);
-    return { success: response.length > 0 };
-  } catch (error) {
-    return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
-  }
-}
 
 /**
- * Call AI through our server-side proxy (avoids CORS issues)
+ * Call AI through our server-side proxy
  */
-async function callAIProxy(prompt: string, config: AIConfig, images?: string[]): Promise<string> {
-  const res = await fetch('/api/ai', {
+async function callAIProxy(prompt: string, images?: string[]): Promise<string> {
+  const res = await fetch('/api/extract', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      provider: config.provider,
-      apiKey: config.apiKey,
-      model: config.model,
       prompt,
       images: images || undefined,
     }),
@@ -137,6 +116,12 @@ async function callAIProxy(prompt: string, config: AIConfig, images?: string[]):
 
   if (!res.ok) {
     const data = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+    if (data.error === 'LIMIT_REACHED' || res.status === 403) {
+      throw new Error('LIMIT_REACHED');
+    }
+    if (res.status === 401) {
+      throw new Error('UNAUTHORIZED');
+    }
     throw new Error(data.error || `Erreur serveur: ${res.status}`);
   }
 
