@@ -84,11 +84,9 @@ export function DropZone({ onFilesAdded }: { onFilesAdded: () => void }) {
 
         {/* Text */}
         <p className="text-lg font-medium text-white mb-2">
-          {isDragActive ? 'Déposez vos fichiers ici' : 'Glissez vos factures PDF ici'}
+          {isDragActive ? 'Drop your files here' : 'Drag & drop invoice PDFs here'}
         </p>
-        <p className="text-sm text-gray-400 mb-4">
-          ou <span className="text-violet-400 underline underline-offset-2">parcourez vos fichiers</span>
-        </p>
+          or <span className="text-violet-400 underline underline-offset-2">browse files</span>
 
         {/* Constraints */}
         <div className="flex items-center gap-4 text-xs text-gray-500">
@@ -96,18 +94,18 @@ export function DropZone({ onFilesAdded }: { onFilesAdded: () => void }) {
             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
             </svg>
-            PDF uniquement
+            PDF only
           </span>
           <span>•</span>
-          <span>Max {MAX_FILES} fichiers</span>
+          <span>Max {MAX_FILES} files</span>
           <span>•</span>
-          <span>Max 20 Mo/fichier</span>
+          <span>Max 20 MB/file</span>
         </div>
 
         {/* File count indicator */}
         {files.length > 0 && (
           <div className="mt-4 rounded-full bg-violet-500/20 px-3 py-1 text-xs text-violet-300">
-            {files.length} fichier{files.length > 1 ? 's' : ''} déjà chargé{files.length > 1 ? 's' : ''}
+            {files.length} file{files.length > 1 ? 's' : ''} uploaded
           </div>
         )}
 

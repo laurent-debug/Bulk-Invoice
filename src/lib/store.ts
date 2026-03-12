@@ -4,7 +4,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
-import type { InvoiceFile, NamingPattern, AIConfig, BatchRecord } from './types';
+import type { InvoiceFile, NamingPattern, AIConfig, BatchRecord, ExportGrouping } from './types';
 import { DEFAULT_PATTERN, DEFAULT_CATEGORIES, AI_MODELS } from './types';
 import { generateFileName, deduplicateNames } from './naming-utils';
 
@@ -22,6 +22,10 @@ interface AppState {
   // Naming Pattern
   pattern: NamingPattern;
   setPattern: (pattern: Partial<NamingPattern>) => void;
+
+  // Export Settings
+  exportGrouping: ExportGrouping;
+  setExportGrouping: (grouping: ExportGrouping) => void;
 
   // AI Config
   aiConfig: AIConfig;
@@ -105,6 +109,10 @@ export const useAppStore = create<AppState>()(
           };
         }),
 
+      // ---- Export Settings ----
+      exportGrouping: 'none',
+      setExportGrouping: (grouping) => set({ exportGrouping: grouping }),
+
       // ---- AI Config ----
       aiConfig: {
         provider: 'gemini',
@@ -182,6 +190,7 @@ export const useAppStore = create<AppState>()(
         aiConfig: { ...state.aiConfig, apiKey: '', enabled: false },
         categories: state.categories,
         history: state.history,
+        exportGrouping: state.exportGrouping,
       }),
       // Migrate old persisted data to new format
       merge: (persisted: unknown, current: AppState) => {

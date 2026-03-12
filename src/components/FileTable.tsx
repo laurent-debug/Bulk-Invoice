@@ -29,10 +29,10 @@ export function FileTable() {
         <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-white/[0.02]">
           <div className="flex items-center gap-3">
             <span className="text-sm font-medium text-white">
-              {files.length} fichier{files.length > 1 ? 's' : ''}
+              {files.length} file{files.length > 1 ? 's' : ''}
             </span>
             <Badge variant="outline" className="text-xs border-violet-500/30 text-violet-300">
-              {selectedCount} sélectionné{selectedCount > 1 ? 's' : ''}
+              {selectedCount} selected
             </Badge>
           </div>
           <div className="flex items-center gap-2">
@@ -40,17 +40,15 @@ export function FileTable() {
               variant="ghost"
               size="sm"
               onClick={selectAll}
-              className="text-xs text-gray-400 hover:text-white h-7"
             >
-              Tout sélectionner
+              Select all
             </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={deselectAll}
-              className="text-xs text-gray-400 hover:text-white h-7"
             >
-              Désélectionner
+              Deselect
             </Button>
           </div>
         </div>
@@ -96,10 +94,10 @@ export function FileTable() {
                     <Badge variant="outline" className="text-[10px] border-amber-500/30 text-amber-400 h-4 px-1.5">OCR</Badge>
                   )}
                   {file.extractionStatus === 'extracting' && (
-                    <Badge variant="outline" className="text-[10px] border-blue-500/30 text-blue-400 h-4 px-1.5 animate-pulse">Extraction…</Badge>
+                    <Badge variant="outline" className="text-[10px] border-blue-500/30 text-blue-400 h-4 px-1.5 animate-pulse">Extracting…</Badge>
                   )}
                   {file.extractionStatus === 'error' && (
-                    <Badge variant="outline" className="text-[10px] border-red-500/30 text-red-400 h-4 px-1.5">Erreur</Badge>
+                    <Badge variant="outline" className="text-[10px] border-red-500/30 text-red-400 h-4 px-1.5">Error</Badge>
                   )}
                 </div>
 
@@ -118,7 +116,7 @@ export function FileTable() {
 
                   {/* Amount */}
                   <div>
-                    <label className="text-[10px] text-gray-500 mb-0.5 block">Montant</label>
+                    <label className="text-[10px] text-gray-500 mb-0.5 block">Amount</label>
                     <Input
                       type="number"
                       step="0.01"
@@ -130,7 +128,7 @@ export function FileTable() {
 
                   {/* Currency */}
                   <div>
-                    <label className="text-[10px] text-gray-500 mb-0.5 block">Devise</label>
+                    <label className="text-[10px] text-gray-500 mb-0.5 block">Currency</label>
                     <Select value={(file.extractedCurrency as string) || 'CHF'} onValueChange={(v) => updateFile(file.id, { extractedCurrency: v } as any)}>
                       <SelectTrigger className="h-7 text-xs bg-white/5 border-white/10 text-white">
                         <SelectValue />
@@ -145,7 +143,7 @@ export function FileTable() {
 
                   {/* Vendor */}
                   <div>
-                    <label className="text-[10px] text-gray-500 mb-0.5 block">Fournisseur</label>
+                    <label className="text-[10px] text-gray-500 mb-0.5 block">Vendor</label>
                     <Input
                       value={file.extractedVendor || ''}
                       onChange={(e) => updateFile(file.id, { extractedVendor: e.target.value || null })}
@@ -156,13 +154,13 @@ export function FileTable() {
 
                   {/* Category */}
                   <div>
-                    <label className="text-[10px] text-gray-500 mb-0.5 block">Catégorie</label>
+                    <label className="text-[10px] text-gray-500 mb-0.5 block">Category</label>
                     <Select value={(file.category as string) || '_none'} onValueChange={(v) => updateFile(file.id, { category: v === '_none' ? '' : v } as any)}>
                       <SelectTrigger className={`h-7 text-xs bg-white/5 border-white/10 text-white ${!file.category ? 'border-amber-500/30' : ''}`}>
                         <SelectValue placeholder="—" />
                       </SelectTrigger>
                       <SelectContent className="bg-gray-900 border-white/10">
-                        <SelectItem value="_none" className="text-gray-400 text-xs">— Aucune</SelectItem>
+                        <SelectItem value="_none" className="text-gray-400 text-xs">— None</SelectItem>
                         {categories.map((c) => (
                           <SelectItem key={c} value={c} className="text-white text-xs">{c}</SelectItem>
                         ))}
@@ -172,7 +170,7 @@ export function FileTable() {
                             <Input
                               value={newCategory}
                               onChange={(e) => setNewCategory(e.target.value)}
-                              placeholder="Nouvelle…"
+                              placeholder="New…"
                               className="h-6 text-xs bg-white/5 border-white/10 text-white flex-1"
                               onClick={(e) => e.stopPropagation()}
                               onKeyDown={(e) => {
@@ -205,7 +203,7 @@ export function FileTable() {
 
                   {/* Invoice Number */}
                   <div>
-                    <label className="text-[10px] text-gray-500 mb-0.5 block">N° Facture</label>
+                    <label className="text-[10px] text-gray-500 mb-0.5 block">Invoice N°</label>
                     <Input
                       value={file.extractedInvoiceNumber || ''}
                       onChange={(e) => updateFile(file.id, { extractedInvoiceNumber: e.target.value || null })}

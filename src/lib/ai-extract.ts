@@ -147,7 +147,7 @@ async function callAIProxy(prompt: string, config: AIConfig, images?: string[]):
 function parseAIResponse(response: string): AIExtractionResult {
   try {
     // Clean response: remove backticks, markdown formatting
-    let cleaned = response
+    const cleaned = response
       .replace(/```json\s*/gi, '')
       .replace(/```\s*/g, '')
       .trim();

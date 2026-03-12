@@ -12,14 +12,14 @@ export function HistoryPanel({ open, onOpenChange }: { open: boolean; onOpenChan
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="bg-gray-950 border-white/10 text-white w-[400px] sm:w-[450px]">
         <SheetHeader>
-          <SheetTitle className="text-white">Historique des lots</SheetTitle>
+          <SheetTitle className="text-white">Export History</SheetTitle>
         </SheetHeader>
 
         <div className="mt-6 space-y-3">
           {history.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-4xl mb-3">📋</div>
-              <p className="text-gray-400 text-sm">Aucun lot traité pour le moment</p>
+              <p className="text-gray-400 text-sm">No batches processed yet</p>
             </div>
           ) : (
             <>
@@ -30,7 +30,7 @@ export function HistoryPanel({ open, onOpenChange }: { open: boolean; onOpenChan
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-400">
-                      {new Date(record.processedAt).toLocaleDateString('fr-FR', {
+                      {new Date(record.processedAt).toLocaleDateString('en-US', {
                         day: '2-digit', month: 'short', year: 'numeric',
                         hour: '2-digit', minute: '2-digit',
                       })}
@@ -40,7 +40,7 @@ export function HistoryPanel({ open, onOpenChange }: { open: boolean; onOpenChan
                     </Badge>
                   </div>
                   <p className="text-sm text-white">
-                    {record.fileCount} fichier{record.fileCount > 1 ? 's' : ''}
+                    {record.fileCount} file{record.fileCount > 1 ? 's' : ''}
                   </p>
                   <p className="text-xs text-gray-500 font-mono">
                     {record.patternUsed.raw}
@@ -51,7 +51,10 @@ export function HistoryPanel({ open, onOpenChange }: { open: boolean; onOpenChan
                     onClick={() => applyPattern(record.patternUsed)}
                     className="text-xs text-violet-400 hover:text-violet-300 hover:bg-violet-500/10 h-7 px-2"
                   >
-                    ↩ Réappliquer ce pattern
+                    <svg className="h-3 w-3 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
+                    </svg>
+                    Reapply Pattern
                   </Button>
                 </div>
               ))}
@@ -61,7 +64,7 @@ export function HistoryPanel({ open, onOpenChange }: { open: boolean; onOpenChan
                 onClick={clearHistory}
                 className="w-full text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 mt-4"
               >
-                Vider l&apos;historique
+                Clear History
               </Button>
             </>
           )}

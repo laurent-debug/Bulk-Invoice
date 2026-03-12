@@ -28,7 +28,7 @@ export default function HomePage() {
   const [progressFileName, setProgressFileName] = useState('');
   const [progressCompleted, setProgressCompleted] = useState(false);
 
-  const { files, updateFile, aiConfig, categories, pattern, addBatchRecord, resetFiles } = useAppStore();
+  const { files, updateFile, aiConfig, categories, pattern, addBatchRecord, resetFiles, exportGrouping } = useAppStore();
 
   // Process files after upload: extract text, parse, generate thumbnails
   const processFiles = useCallback(async () => {
@@ -127,8 +127,7 @@ export default function HomePage() {
       } catch (error) {
         console.error(`[Extraction] ✗ Failed: ${file.originalName}`, error);
         updateFile(file.id, {
-          extractionStatus: 'error',
-          extractionError: error instanceof Error ? error.message : 'Erreur inconnue',
+          extractionError: error instanceof Error ? error.message : 'Unknown error',
         });
       }
     }
@@ -154,7 +153,7 @@ export default function HomePage() {
     await createAndDownloadZip(files, (current, total, fileName) => {
       setProgressCurrent(current);
       setProgressFileName(fileName);
-    });
+    }, exportGrouping);
 
     addBatchRecord({
       fileCount: selectedFiles.length,
@@ -164,7 +163,7 @@ export default function HomePage() {
 
     setProgressCompleted(true);
     setExporting(false);
-  }, [files, pattern, addBatchRecord]);
+  }, [files, pattern, addBatchRecord, exportGrouping]);
 
   const handleReset = useCallback(() => {
     resetFiles();
@@ -183,30 +182,30 @@ export default function HomePage() {
         {!showWorkspace && (
           <div className="pt-12 pb-4 text-center">
             <h2 className="text-3xl sm:text-4xl font-bold text-white mb-3 tracking-tight">
-              Renommez vos factures
-              <span className="bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent"> en masse</span>
+              Rename your invoices
+              <span className="bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent"> in bulk</span>
             </h2>
             <p className="text-gray-400 max-w-xl mx-auto text-sm sm:text-base px-6">
-              Uploadez vos PDF, l&apos;extraction est automatique. Vos fichiers restent dans votre navigateur, sauf si vous activez l&apos;IA (BYOK).
+              Upload your PDFs, data extraction is fully automatic. Files stay in your browser unless AI processing is enabled (BYOK).
             </p>
 
             {/* Feature badges */}
             <div className="flex flex-col items-center gap-4 mt-8">
               {/* Highlight badge */}
               <span className="inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-500/10 px-5 py-2 text-sm text-violet-300 font-medium">
-                📄 Scans, reçus et manuscrits parfaitement lus par l&apos;IA
+                📄 Scans, receipts, and handwritten notes perfectly read by AI
               </span>
 
               {/* Security badges */}
               <div className="flex flex-wrap items-center justify-center gap-3">
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-gray-400 font-medium whitespace-nowrap">
-                  🔒 Vos fichiers originaux ne sont pas stockés
+                  🔒 Original files are never stored
                 </span>
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-gray-400 font-medium whitespace-nowrap">
-                  🔑 Vos clés d&apos;API ne sont pas enregistrées
+                  🔑 API keys are never saved
                 </span>
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-gray-400 font-medium whitespace-nowrap">
-                  🌐 Traitement 100% dans votre navigateur par défaut
+                  🌐 100% processing in your browser by default
                 </span>
               </div>
             </div>

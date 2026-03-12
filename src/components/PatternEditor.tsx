@@ -10,11 +10,11 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 
 const TOKEN_INFO: Record<TokenType, { label: string; example: string }> = {
   date: { label: 'Date', example: '260311' },
-  amount: { label: 'Montant', example: '150.00' },
-  currency: { label: 'Devise', example: '(EUR)' },
-  vendor: { label: 'Fournisseur', example: 'Migros' },
-  category: { label: 'Catégorie', example: 'Fournitures' },
-  invoiceNumber: { label: 'N° Facture', example: 'F2024-001' },
+  amount: { label: 'Amount', example: '150.00' },
+  currency: { label: 'Currency', example: '(USD)' },
+  vendor: { label: 'Vendor', example: 'Acme_Corp' },
+  category: { label: 'Category', example: 'Supplies' },
+  invoiceNumber: { label: 'Invoice N°', example: 'INV-001' },
 };
 
 const ALL_TOKENS: TokenType[] = ['date', 'amount', 'currency', 'vendor', 'category', 'invoiceNumber'];
@@ -76,10 +76,10 @@ export function PatternEditor() {
             <div>
               <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse" />
-                Format de nommage des fichiers
+                File Naming Pattern
               </h3>
               <p className="text-xs text-gray-400 max-w-lg">
-                Personnalisez le nom final de vos factures. Tapez librement vos séparateurs (tirets, points, espaces) dans le champ ci-dessous.
+                Customize how your invoices are renamed. Freely type your separators (dashes, dots, spaces) in the field below.
               </p>
             </div>
             <Button
@@ -91,7 +91,7 @@ export function PatternEditor() {
                 setPattern({ raw: defaultRaw });
               }}
             >
-              Réinitialiser par défaut
+              Reset to Default
             </Button>
           </div>
         </div>
@@ -113,7 +113,7 @@ export function PatternEditor() {
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[10px] text-gray-500 uppercase tracking-wider font-bold mr-2">Cliquer pour ajouter :</span>
+              <span className="text-[10px] text-gray-500 uppercase tracking-wider font-bold mr-2">Click to add :</span>
               {ALL_TOKENS.map((token) => (
                 <button
                   key={token}
@@ -131,7 +131,7 @@ export function PatternEditor() {
             {/* Options */}
             <div className="flex flex-wrap items-center gap-6 p-4 rounded-xl bg-white/[0.02] border border-white/5">
               <div className="space-y-1.5">
-                <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest pl-1">Format Date</span>
+                <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest pl-1">Date Format</span>
                 <Select
                   value={(pattern.dateFormat as string) || 'YYMMDD'}
                   onValueChange={(v) => setPattern({ dateFormat: (v || 'YYMMDD') as DateFormatType })}
@@ -148,7 +148,7 @@ export function PatternEditor() {
               </div>
 
               <div className="space-y-1.5">
-                <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest pl-1">Devise Locale</span>
+                <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest pl-1">Local Currency</span>
                 <Select
                   value={(pattern.defaultCurrency as string) || 'CHF'}
                   onValueChange={(v) => setPattern({ defaultCurrency: v || 'CHF' })}
@@ -161,12 +161,18 @@ export function PatternEditor() {
                     <SelectItem value="EUR">EUR</SelectItem>
                     <SelectItem value="USD">USD</SelectItem>
                     <SelectItem value="GBP">GBP</SelectItem>
+                    <SelectItem value="CAD">CAD</SelectItem>
+                    <SelectItem value="AUD">AUD</SelectItem>
+                    <SelectItem value="JPY">JPY</SelectItem>
+                    <SelectItem value="INR">INR</SelectItem>
+                    <SelectItem value="BRL">BRL</SelectItem>
+                    <SelectItem value="MXN">MXN</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-1.5">
-                <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest pl-1">Règle Devise</span>
+                <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest pl-1">Currency Rule</span>
                 <Select
                   value={pattern.showCurrencyAlways ? 'always' : 'conditional'}
                   onValueChange={(v) => setPattern({ showCurrencyAlways: v === 'always' })}
@@ -175,8 +181,8 @@ export function PatternEditor() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-gray-950 border-white/10">
-                    <SelectItem value="conditional">Masquer si {pattern.defaultCurrency}</SelectItem>
-                    <SelectItem value="always">Toujours afficher</SelectItem>
+                    <SelectItem value="conditional">Hide if {pattern.defaultCurrency}</SelectItem>
+                    <SelectItem value="always">Always show</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -187,14 +193,14 @@ export function PatternEditor() {
               <div className="absolute top-0 right-0 p-2">
                  <div className="text-[9px] font-bold text-emerald-500/50 uppercase tracking-tighter bg-emerald-500/10 px-1.5 py-0.5 rounded">PDF Preview</div>
               </div>
-              <span className="text-[10px] text-emerald-500/70 font-bold uppercase tracking-widest block mb-3">Exemple de nom généré :</span>
+              <span className="text-[10px] text-emerald-500/70 font-bold uppercase tracking-widest block mb-3">Generated Name Example:</span>
               <div className="bg-black/40 rounded-lg p-4 border border-white/5 group-hover:border-emerald-500/30 transition-colors">
                 <code className="text-sm sm:text-base text-emerald-400 font-mono break-all leading-relaxed">
-                  {preview || 'votre_facture.pdf'}
+                  {preview || 'your_invoice.pdf'}
                 </code>
               </div>
               <p className="text-[10px] text-gray-500 mt-3 italic">
-                Ceci est un aperçu avec des données fictives. Vos vraies factures seront renommées selon ce schéma.
+                This is a preview with dummy data. Your files will be renamed according to this format.
               </p>
             </div>
           </div>
@@ -204,10 +210,10 @@ export function PatternEditor() {
             <div>
               <h4 className="text-sm font-bold text-white flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-violet-500/50" />
-                Catégories métiers
+                Business Categories
               </h4>
               <p className="text-xs text-gray-400 mt-1">
-                Gérez les catégories qui pourront être associées à vos factures (ex: Fournitures, Achats, Frais...).
+                Manage categories that can be assigned to your invoices (e.g., Supplies, Software, Fees...).
               </p>
             </div>
 
@@ -215,11 +221,11 @@ export function PatternEditor() {
               <Input
                 value={newCat}
                 onChange={(e) => setNewCat(e.target.value)}
-                placeholder="Nouvelle catégorie…"
+                placeholder="New category…"
                 className="bg-white/5 border-white/10 text-white text-sm flex-1 h-9"
               />
               <Button type="submit" variant="outline" className="h-9 border-white/10 text-gray-300 hover:text-white">
-                Ajouter
+                Add
               </Button>
             </form>
 

@@ -7,6 +7,7 @@ export type SeparatorType = '_' | '-' | '.' | ' ';
 export type DateFormatType = 'YYMMDD' | 'YYYY-MM-DD' | 'DD-MM-YYYY';
 export type AIProvider = 'gemini' | 'openai' | 'deepseek';
 export type ExportDestination = 'zip' | 'gdrive';
+export type ExportGrouping = 'none' | 'vendor' | 'category' | 'month';
 
 export interface InvoiceFile {
   id: string;

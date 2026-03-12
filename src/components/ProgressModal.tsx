@@ -25,10 +25,10 @@ export function ProgressModal({
         <DialogHeader>
           <DialogTitle className="text-base">
             {completed
-              ? '✓ Traitement terminé'
+              ? '✓ Processing complete'
               : phase === 'extraction'
-                ? 'Extraction des données…'
-                : 'Export en cours…'
+                ? 'Extracting data…'
+                : 'Exporting…'
             }
           </DialogTitle>
         </DialogHeader>
@@ -59,14 +59,14 @@ export function ProgressModal({
             {/* Success summary */}
             <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-4 text-center">
               <div className="text-3xl mb-2">🎉</div>
-              <p className="text-emerald-400 font-medium">{total} fichier{total > 1 ? 's' : ''} traité{total > 1 ? 's' : ''}</p>
+              <p className="text-emerald-400 font-medium">{total} file{total > 1 ? 's' : ''} processed</p>
             </div>
 
             <Button
               onClick={onClose}
               className="w-full bg-violet-600 hover:bg-violet-500 text-white"
             >
-              Fermer
+              Close
             </Button>
           </div>
         )}
