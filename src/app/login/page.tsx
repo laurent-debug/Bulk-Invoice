@@ -1,6 +1,7 @@
 import { login, signup } from '@/app/auth-actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import Link from 'next/link';
 
 export default async function LoginPage({
   searchParams,
@@ -42,9 +43,17 @@ export default async function LoginPage({
           </div>
 
           <div className="flex flex-col gap-2">
-            <label htmlFor="password" className="text-sm font-medium text-gray-300">
-              Password
-            </label>
+            <div className="flex items-center justify-between">
+              <label htmlFor="password" className="text-sm font-medium text-gray-300">
+                Password
+              </label>
+              <Link 
+                href="/forgot-password" 
+                className="text-xs text-violet-400 hover:text-violet-300 transition-colors"
+              >
+                Forgot password?
+              </Link>
+            </div>
             <Input
               id="password"
               name="password"
