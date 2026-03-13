@@ -30,7 +30,10 @@ Required Fields:
 - "amount": decimal number (total inclusive of tax). MUST be a number, NOT a string.
 - "currency": 3-letter currency code (CHF, EUR, USD, GBP). Default: "${defaultCurrency}".
 - "vendor": company/store name (e.g., "Swisscom", "Amazon", "Migros", "Lidl").
-- "category": First, determine the natural business category of this document (e.g., Marketing, Software, Groceries, Hardware). If it logically matches one of these user-defined categories: [${categoriesStr}], use that exact predefined category name. If there is NO good match in the predefined list, DO NOT default to "Other" or "SANS-CAT". Instead, output your own logical, short category name (max 2 words) in the language: ${userLang}.
+- "category": YOU MUST BE SPECIFIC. First, identify the exact business purpose (e.g., Administration, Social Security, Marketing, Software, Groceries, Hardware, Insurance, Rent). 
+  1. If it logically matches exactly or closely to one of these user-defined categories: [${categoriesStr}], use that predefined name.
+  2. Even if "Other" is in the list, AVOID it if you can identify a better specific category. 
+  3. If there is NO good match, output your own short, descriptive category name (max 2 words, e.g., "Administration", "Frais Sociaux").
 - "invoiceNumber": the invoice/receipt/reference number if present.
 - "paymentMethod": for paid documents/receipts, identify the method (e.g., "Visa", "Mastercard", "Cash", "TWINT", "Amex"). If not paid or unknown, return null.
 - "dueDate": for unpaid invoices, identify the deadline/due date in "YYYY-MM-DD" format. If already paid or not found, return null.
@@ -94,7 +97,10 @@ Required Fields:
 - "amount": decimal number (total inclusive of tax). MUST be a number.
 - "currency": 3-letter currency code (CHF, EUR, USD, GBP). Default: "${defaultCurrency}".
 - "vendor": company/store name visible on the document.
-- "category": First, determine the natural business category of this document (e.g., Marketing, Groceries). If it logically matches one of these user-defined categories: [${categories.join(', ')}], use that exact predefined category name. If there is NO good match, output your own short, logical category name (max 2 words) in the language: ${userLang}.
+- "category": BE SPECIFIC. Identify the document's business category (e.g., Administration, Groceries, Insurance, Social Charges). 
+  1. If it matches one of these user categories: [${categories.join(', ')}], use that name. 
+  2. Avoid "Other" if a better specific word exists.
+  3. Otherwise, output your own short, logical category (max 2 words) in ${userLang}.
 - "invoiceNumber": the invoice/receipt number if visible.
 - "paymentMethod": identify payment method for receipts (Visa, Mastercard, Cash, TWINT).
 - "dueDate": identify due date for unpaid invoices in "YYYY-MM-DD" format.
