@@ -100,7 +100,7 @@ export function FileTable() {
               <div className="flex-1 min-w-0">
                 {/* Original name and badges */}
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xs text-gray-500 truncate max-w-[200px]" title={file.originalName}>
+                  <span className="text-xs text-gray-500 break-all font-medium" title={file.originalName}>
                     {file.originalName}
                   </span>
                   <span className="text-[10px] text-gray-600">{formatFileSize(file.fileSize)}</span>

@@ -20,8 +20,17 @@ export function ProgressModal({
   const percent = total > 0 ? Math.round((current / total) * 100) : 0;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-gray-950 border-white/10 text-white w-[calc(100%-2rem)] sm:max-w-md p-6 overflow-hidden flex flex-col items-stretch">
+    <Dialog 
+      open={open} 
+      onOpenChange={(isOpen) => {
+        if (!isOpen && !completed) return; // Prevent closing while processing
+        onOpenChange(isOpen);
+      }}
+    >
+      <DialogContent 
+        className="bg-gray-950 border-white/10 text-white w-[calc(100%-2rem)] sm:max-w-md p-6 overflow-hidden flex flex-col items-stretch"
+        showCloseButton={completed} // Only show close button if completed
+      >
         <DialogHeader className="mb-4 flex-shrink-0">
           <DialogTitle className="text-lg font-semibold flex items-center gap-2 truncate">
             {completed ? (

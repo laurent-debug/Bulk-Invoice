@@ -139,9 +139,13 @@ export function DropZone({ onFilesAdded, onLimitReached }: { onFilesAdded: () =>
               <p className="text-gray-400">
                 {t('dropzone.browse')}
               </p>
-              {!isPro && (
+              {!isPro ? (
                 <div className="mt-3 inline-flex items-center rounded-full bg-violet-500/10 px-3 py-1 text-sm font-medium text-violet-300 border border-violet-500/20">
                   {t('dropzone.trial', { used: filesProcessed })}
+                </div>
+              ) : (
+                <div className="mt-3 inline-flex items-center rounded-full bg-emerald-500/10 px-3 py-1 text-[11px] font-bold tracking-widest uppercase text-emerald-400 border border-emerald-500/20">
+                  Pro Account Active
                 </div>
               )}
             </>
