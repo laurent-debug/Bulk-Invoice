@@ -21,46 +21,46 @@ export function ProgressModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-gray-950 border-white/10 text-white w-[calc(100%-2rem)] sm:max-w-md p-6">
-        <DialogHeader className="mb-4">
-          <DialogTitle className="text-lg font-semibold flex items-center gap-2">
+      <DialogContent className="bg-gray-950 border-white/10 text-white w-[calc(100%-2rem)] sm:max-w-md p-6 overflow-hidden flex flex-col items-stretch">
+        <DialogHeader className="mb-4 flex-shrink-0">
+          <DialogTitle className="text-lg font-semibold flex items-center gap-2 truncate">
             {completed ? (
               <span className="text-emerald-400">✓ Processing complete</span>
             ) : (
               <>
-                <div className="h-2 w-2 rounded-full bg-violet-500 animate-pulse" />
-                {phase === 'extraction' ? 'Extracting Data…' : 'Exporting Files…'}
+                <div className="h-2 w-2 rounded-full bg-violet-500 animate-pulse flex-shrink-0" />
+                <span className="truncate">{phase === 'extraction' ? 'Extracting Data…' : 'Exporting Files…'}</span>
               </>
             )}
           </DialogTitle>
         </DialogHeader>
 
         {!completed ? (
-          <div className="space-y-6">
+          <div className="space-y-6 min-w-0 w-full">
             {/* Progress bar container */}
-            <div className="space-y-2">
-              <div className="w-full rounded-full bg-white/5 h-4 border border-white/10 p-0.5 overflow-hidden">
+            <div className="space-y-2 w-full">
+              <div className="w-full rounded-full bg-white/5 h-4 border border-white/10 p-0.5 overflow-hidden ring-1 ring-white/5">
                 <div
                   className="h-full rounded-full bg-gradient-to-r from-violet-500 to-indigo-500 transition-all duration-500 ease-out shadow-[0_0_12px_rgba(139,92,246,0.3)]"
-                  style={{ width: `${Math.min(100, percent)}%` }}
+                  style={{ width: `${Math.max(2, Math.min(100, percent))}%` }}
                 />
               </div>
               <div className="flex items-center justify-between text-xs font-medium px-0.5">
-                <span className="text-gray-400">{current} of {total} processed</span>
+                <span className="text-gray-400 text-[11px]">{current} of {total} processed</span>
                 <span className="text-violet-400">{percent}%</span>
               </div>
             </div>
 
             {/* Current file */}
-            <div className="flex items-center gap-3 rounded-lg bg-white/5 border border-white/10 p-3">
-              <div className="flex-shrink-0 w-8 h-8 rounded bg-violet-500/10 flex items-center justify-center text-lg">
+            <div className="flex items-center gap-3 rounded-lg bg-white/5 border border-white/10 p-3 w-full min-w-0">
+              <div className="flex-shrink-0 w-8 h-8 rounded bg-violet-500/10 flex items-center justify-center text-lg shadow-inner">
                 {phase === 'extraction' ? '🔍' : '📦'}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-[10px] uppercase tracking-wider text-gray-500 font-semibold mb-0.5">
+                <p className="text-[10px] uppercase tracking-wider text-gray-500 font-bold mb-0.5">
                   Current Item
                 </p>
-                <p className="text-sm text-gray-300 truncate font-medium">
+                <p className="text-sm text-gray-300 truncate font-medium" title={currentFileName}>
                   {currentFileName || 'Please wait...'}
                 </p>
               </div>
