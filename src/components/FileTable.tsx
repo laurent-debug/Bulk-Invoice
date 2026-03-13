@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { formatFileSize } from '@/lib/helpers';
 import { useState } from 'react';
+import { FilePreviewModal } from './FilePreviewModal';
+import type { InvoiceFile } from '@/lib/types';
 
 const CURRENCIES = ['CHF', 'EUR', 'USD', 'GBP'];
 
@@ -18,6 +20,7 @@ export function FileTable() {
   } = useAppStore();
 
   const [newCategory, setNewCategory] = useState('');
+  const [previewFile, setPreviewFile] = useState<InvoiceFile | null>(null);
   const selectedCount = files.filter((f) => f.isSelected).length;
 
   if (files.length === 0) return null;
@@ -71,8 +74,13 @@ export function FileTable() {
                 />
               </div>
 
-              {/* Thumbnail */}
-              <div className="flex-shrink-0 w-12 h-16 rounded-md bg-white/5 border border-white/10 overflow-hidden flex items-center justify-center">
+              {/* Thumbnail with Preview Trigger */}
+              <button
+                type="button"
+                onClick={() => setPreviewFile(file)}
+                className="flex-shrink-0 w-12 h-16 rounded-md bg-white/5 border border-white/10 overflow-hidden flex items-center justify-center relative group/thumb transition-all hover:border-violet-500/50 hover:shadow-lg hover:shadow-violet-500/10"
+                title="Click to preview document"
+              >
                 {file.thumbnailDataUrl ? (
                   <img src={file.thumbnailDataUrl} alt="" className="w-full h-full object-cover" />
                 ) : (
@@ -80,7 +88,13 @@ export function FileTable() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                   </svg>
                 )}
-              </div>
+                {/* Hover overlay */}
+                <div className="absolute inset-0 bg-violet-600/40 opacity-0 group-hover/thumb:opacity-100 flex items-center justify-center transition-opacity">
+                  <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                  </svg>
+                </div>
+              </button>
 
               {/* Content */}
               <div className="flex-1 min-w-0">
@@ -237,6 +251,12 @@ export function FileTable() {
           ))}
         </div>
       </div>
+
+      <FilePreviewModal
+        file={previewFile}
+        open={!!previewFile}
+        onOpenChange={(open) => !open && setPreviewFile(null)}
+      />
     </div>
   );
 }
