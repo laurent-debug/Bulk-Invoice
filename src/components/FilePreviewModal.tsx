@@ -30,38 +30,64 @@ export function FilePreviewModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl w-[90vw] h-[90vh] bg-gray-950 border-white/10 p-0 overflow-hidden flex flex-col">
-        <DialogHeader className="p-4 border-b border-white/10 flex flex-row items-center justify-between">
-          <div>
-            <DialogTitle className="text-white text-sm font-medium truncate max-w-[400px]">
-              Preview: {file.originalName}
-            </DialogTitle>
-            <p className="text-[10px] text-gray-500 uppercase tracking-wider font-bold mt-1">
-              Document Viewer
-            </p>
+      <DialogContent 
+        className="max-w-5xl w-[95vw] h-[90vh] bg-gray-950 border-white/10 p-0 overflow-hidden flex flex-col shadow-2xl"
+        showCloseButton={false}
+      >
+        {/* Custom Header to avoid overlap */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-gray-900/50 backdrop-blur-md flex-shrink-0">
+          <div className="min-w-0 flex-1">
+            <h2 className="text-white text-base font-semibold truncate leading-tight pr-4">
+              {file.originalName}
+            </h2>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">
+                Invoice Preview
+              </p>
+            </div>
           </div>
-          <div className="flex items-center gap-2 pr-8">
+          
+          <div className="flex items-center gap-3">
             <Button
               variant="outline"
               size="sm"
-              className="h-8 text-xs bg-white/5 border-white/10 text-gray-300 hover:text-white"
+              className="hidden sm:flex h-9 px-4 text-xs bg-white/5 border-white/10 text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
               onClick={() => window.open(objectUrl || '', '_blank')}
             >
               Open in New Tab
             </Button>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-9 w-9 p-0 text-gray-400 hover:text-white hover:bg-white/10 rounded-full"
+              onClick={() => onOpenChange(false)}
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              <span className="sr-only">Close</span>
+            </Button>
           </div>
-        </DialogHeader>
+        </div>
 
-        <div className="flex-1 bg-white/5 relative">
+        {/* Content Area */}
+        <div className="flex-1 bg-gray-900 relative">
           {objectUrl ? (
-            <iframe
-              src={`${objectUrl}#toolbar=0&navpanes=0&scrollbar=0`}
-              className="w-full h-full border-none"
-              title="PDF Preview"
-            />
+            <div className="absolute inset-0 p-4 sm:p-8">
+              <div className="w-full h-full bg-white rounded-lg overflow-hidden shadow-depth border border-white/5">
+                <iframe
+                  src={`${objectUrl}#toolbar=0&navpanes=0&scrollbar=0`}
+                  className="w-full h-full border-none"
+                  title="PDF Preview"
+                />
+              </div>
+            </div>
           ) : (
-            <div className="flex items-center justify-center h-full text-gray-500 text-sm">
-              Loading preview...
+            <div className="flex flex-col items-center justify-center h-full gap-4 text-gray-500">
+              <div className="h-8 w-8 border-2 border-violet-500/20 border-t-violet-500 rounded-full animate-spin" />
+              <p className="text-sm font-medium">Preparing document view...</p>
             </div>
           )}
         </div>
