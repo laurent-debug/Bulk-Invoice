@@ -19,33 +19,30 @@ export function Header({
   const supabase = createClient();
 
   useEffect(() => {
-    const fetchUserAndProfile = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (user) {
-        const { data } = await supabase
-          .from('profiles')
-          .select('is_pro, files_processed')
-          .eq('id', user.id)
-          .single();
-        setAuthData(user, !!data?.is_pro, data?.files_processed || 0);
-      } else {
-        setAuthData(null, false, 0);
-      }
-    };
-
-    fetchUserAndProfile();
-
+    // onAuthStateChange fires automatically on mount with event 'INITIAL_SESSION'
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('[Auth] State change:', event, session ? 'has session' : 'NO session');
+
+        if (event === 'SIGNED_OUT') {
+          setAuthData(null, false, 0);
+          return;
+        }
+
         if (session?.user) {
-          const { data } = await supabase
+          const { data, error } = await supabase
             .from('profiles')
             .select('is_pro, files_processed')
             .eq('id', session.user.id)
             .single();
+
+          if (error) {
+            console.error('[Auth] Profile fetch error:', error);
+          }
+          
           setAuthData(session.user, !!data?.is_pro, data?.files_processed || 0);
-        } else {
+        } else if (event === 'INITIAL_SESSION') {
+          // No session found on startup
           setAuthData(null, false, 0);
         }
       }
