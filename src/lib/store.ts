@@ -66,7 +66,18 @@ export const useAppStore = create<AppState>()(
 
       addFiles: (newFiles) =>
         set((state) => {
-          const updated = [...state.files, ...newFiles];
+          // Prevent duplicates based on file name and size combined
+          const existingSignatures = new Set(
+            state.files.map((f) => `${f.originalName}-${f.fileSize}`)
+          );
+
+          const filteredNewFiles = newFiles.filter(
+            (nf) => !existingSignatures.has(`${nf.originalName}-${nf.fileSize}`)
+          );
+
+          if (filteredNewFiles.length === 0) return state; // Everything was a duplicate
+
+          const updated = [...state.files, ...filteredNewFiles];
           return { files: deduplicateNames(updated, state.pattern) };
         }),
 
