@@ -11,6 +11,7 @@ export function LoginForm({ serverError }: { serverError?: string }) {
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [passwordError, setPasswordError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -21,7 +22,9 @@ export function LoginForm({ serverError }: { serverError?: string }) {
   }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    // If it's a signup, let's just make sure passwords match before submitting to server action
+    setIsLoading(true);
+    setPasswordError('');
+
     if (mode === 'signup') {
       const formData = new FormData(e.currentTarget);
       const password = formData.get('password') as string;
@@ -30,10 +33,10 @@ export function LoginForm({ serverError }: { serverError?: string }) {
       if (password !== confirmPassword) {
         e.preventDefault();
         setPasswordError('Passwords do not match.');
+        setIsLoading(false);
         return;
       }
     }
-    setPasswordError('');
   };
 
   return (
@@ -51,7 +54,7 @@ export function LoginForm({ serverError }: { serverError?: string }) {
         </div>
 
         {(serverError || passwordError) && (
-          <div className="mb-6 rounded-lg bg-red-500/10 p-3 text-sm text-red-500 border border-red-500/20 text-center">
+          <div className="mb-6 rounded-lg bg-red-500/10 p-3 text-sm text-red-500 border border-red-500/20 text-center animate-in fade-in zoom-in duration-300">
             {passwordError || serverError}
           </div>
         )}
@@ -62,7 +65,11 @@ export function LoginForm({ serverError }: { serverError?: string }) {
           </div>
         )}
 
-        <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+        <form 
+          className="flex flex-col gap-4" 
+          onSubmit={handleSubmit}
+          action={mode === 'login' ? login : signup}
+        >
           <div className="flex flex-col gap-2">
             <label htmlFor="email" className="text-sm font-medium text-gray-300">
               Email
@@ -73,7 +80,8 @@ export function LoginForm({ serverError }: { serverError?: string }) {
               type="email"
               placeholder="you@example.com"
               required
-              className="bg-black/50 border-white/10 text-white placeholder:text-gray-600 focus-visible:ring-violet-500"
+              disabled={isLoading}
+              className="bg-black/50 border-white/10 text-white placeholder:text-gray-600 focus-visible:ring-violet-500 disabled:opacity-50"
             />
           </div>
 
@@ -96,7 +104,8 @@ export function LoginForm({ serverError }: { serverError?: string }) {
               name="password"
               type="password"
               required
-              className="bg-black/50 border-white/10 text-white focus-visible:ring-violet-500"
+              disabled={isLoading}
+              className="bg-black/50 border-white/10 text-white focus-visible:ring-violet-500 disabled:opacity-50"
             />
           </div>
 
@@ -110,7 +119,8 @@ export function LoginForm({ serverError }: { serverError?: string }) {
                 name="confirmPassword"
                 type="password"
                 required
-                className="bg-black/50 border-white/10 text-white focus-visible:ring-violet-500"
+                disabled={isLoading}
+                className="bg-black/50 border-white/10 text-white focus-visible:ring-violet-500 disabled:opacity-50"
               />
             </div>
           )}
@@ -118,20 +128,32 @@ export function LoginForm({ serverError }: { serverError?: string }) {
           <div className="mt-4 flex flex-col gap-4">
             <Button
               type="submit"
-              formAction={mode === 'login' ? login : signup}
-              className="w-full bg-violet-600 hover:bg-violet-700 text-white"
+              disabled={isLoading}
+              className="w-full bg-violet-600 hover:bg-violet-700 text-white font-semibold h-11 shadow-lg shadow-violet-500/20"
             >
-              {mode === 'login' ? 'Log In' : 'Sign Up'}
+              {isLoading ? (
+                <span className="flex items-center gap-2">
+                  <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Processing...
+                </span>
+              ) : (
+                mode === 'login' ? 'Log In' : 'Sign Up'
+              )}
             </Button>
             
             <div className="text-center text-sm text-gray-400">
               {mode === 'login' ? "Don't have an account? " : "Already have an account? "}
               <button
                 type="button"
-                className="text-white hover:text-violet-400 font-medium underline underline-offset-4"
+                disabled={isLoading}
+                className="text-white hover:text-violet-400 font-medium underline underline-offset-4 disabled:opacity-50 disabled:no-underline"
                 onClick={() => {
                   setMode(mode === 'login' ? 'signup' : 'login');
                   setPasswordError('');
+                  setSuccessMessage('');
                 }}
               >
                 {mode === 'login' ? 'Create Account' : 'Log In'}
