@@ -122,10 +122,14 @@ Strict Rules:
 }
 
 
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 /**
- * Call AI through our server-side proxy
+ * Call AI through our server-side proxy with retry logic for rate limits
  */
-async function callAIProxy(prompt: string, images?: string[]): Promise<string> {
+async function callAIProxy(prompt: string, images?: string[], retryCount = 0): Promise<string> {
+  const maxRetries = 3;
+  
   const res = await fetch('/api/extract', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -137,6 +141,15 @@ async function callAIProxy(prompt: string, images?: string[]): Promise<string> {
 
   if (!res.ok) {
     const data = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+    
+    // Handle OpenAI Rate Limits (429) gracefully with retries
+    if (res.status === 429 && retryCount < maxRetries) {
+      const delay = Math.pow(2, retryCount) * 1000 + Math.random() * 1000;
+      console.warn(`[AI] Rate limit reached (429). Retrying in ${Math.round(delay)}ms... (Attempt ${retryCount + 1}/${maxRetries})`);
+      await sleep(delay);
+      return callAIProxy(prompt, images, retryCount + 1);
+    }
+
     if (data.error === 'LIMIT_REACHED' || res.status === 403) {
       throw new Error('LIMIT_REACHED');
     }

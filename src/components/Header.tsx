@@ -19,7 +19,38 @@ export function Header({
   const supabase = createClient();
 
   useEffect(() => {
-    // onAuthStateChange fires automatically on mount with event 'INITIAL_SESSION'
+    let mounted = true;
+
+    const checkInitialSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!mounted) return;
+      
+      if (session?.user) {
+        console.log('[Auth] Initial session found:', session.user.email);
+        let { data } = await supabase
+          .from('profiles')
+          .select('is_pro, files_processed')
+          .eq('id', session.user.id)
+          .maybeSingle();
+        
+        if (!data && mounted) {
+           const { data: newProfile } = await supabase
+            .from('profiles')
+            .insert([{ id: session.user.id }])
+            .select()
+            .single();
+           data = newProfile;
+        }
+
+        if (mounted) {
+          setAuthData(session.user, !!data?.is_pro, data?.files_processed || 0);
+        }
+      }
+    };
+
+    checkInitialSession();
+
+    // onAuthStateChange handles subsequent changes
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('[Auth] State change:', event, session ? 'has session' : 'NO session');
@@ -30,14 +61,31 @@ export function Header({
         }
 
         if (session?.user) {
-          const { data, error } = await supabase
+          console.log('[Auth] State change - fetching profile for:', session.user.email);
+          let { data, error } = await supabase
             .from('profiles')
             .select('is_pro, files_processed')
             .eq('id', session.user.id)
-            .single();
+            .maybeSingle();
 
           if (error) {
             console.error('[Auth] Profile fetch error:', error);
+          }
+
+          // If no profile exists, create one
+          if (!data && !error) {
+            console.log('[Auth] No profile found, creating one...');
+            const { data: newProfile, error: insertError } = await supabase
+              .from('profiles')
+              .insert([{ id: session.user.id }])
+              .select()
+              .single();
+            
+            if (insertError) {
+              console.error('[Auth] Profile creation error:', insertError);
+            } else {
+              data = newProfile;
+            }
           }
           
           setAuthData(session.user, !!data?.is_pro, data?.files_processed || 0);
