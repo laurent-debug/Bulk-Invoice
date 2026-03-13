@@ -66,8 +66,7 @@ export default function HomePage() {
           console.warn(`[Extraction] Thumbnail failed:`, thumbError);
         }
 
-        // Step 4: AI extraction (ONLY)
-        // Uses VISION mode (sends page images to AI) for best accuracy
+        // Step 4: Hybrid extraction (Regex hints + AI validation)
         let finalDate = null;
         let finalAmount = null;
         let finalCurrency = pattern.defaultCurrency;
@@ -76,44 +75,57 @@ export default function HomePage() {
         let finalCategory = '';
 
         try {
+          // 4a. Run local Regex first (fast, multi-language support)
+          console.log(`[Extraction] Running Regex pre-parsing...`);
+          const hints = parseInvoiceData(text);
+          console.log(`[Extraction] Regex hints:`, hints);
+
           let aiResult;
           
           try {
             console.log(`[Extraction] Rendering PDF pages as images for vision...`);
             const pageImages = await renderPagesAsImages(file.fileBlob, 2);
             console.log(`[Extraction] Sending ${pageImages.length} image(s) to AI vision...`);
-            aiResult = await aiExtractWithVision(pageImages, text, categories, pattern.defaultCurrency);
+            // Pass the regex hints to the AI
+            aiResult = await aiExtractWithVision(pageImages, text, categories, pattern.defaultCurrency, hints);
           } catch (visionError) {
             console.log(`[Extraction] Using text mode (Reason: ${visionError instanceof Error ? visionError.message : 'failed'})`);
-            // Fall back to text-only AI
+            // Fall back to text-only AI with hints
             if (text.length > 5) {
-              aiResult = await aiExtractFields(text, categories, pattern.defaultCurrency);
+              aiResult = await aiExtractFields(text, categories, pattern.defaultCurrency, hints);
             }
           }
 
           if (aiResult) {
             console.log(`[Extraction] AI result:`, aiResult);
-            if (aiResult.date) finalDate = aiResult.date;
-            if (aiResult.amount) finalAmount = aiResult.amount;
-            if (aiResult.currency) finalCurrency = aiResult.currency;
-            if (aiResult.vendor) finalVendor = aiResult.vendor;
-            if (aiResult.category) finalCategory = aiResult.category;
-            if (aiResult.invoiceNumber) finalInvoiceNumber = aiResult.invoiceNumber;
+            // AI takes precedence, fallback to regex hints if AI returns null/undefined for a field
+            finalDate = aiResult.date ?? hints.date ?? null;
+            finalAmount = aiResult.amount ?? hints.amount ?? null;
+            finalCurrency = aiResult.currency ?? hints.currency;
+            finalVendor = aiResult.vendor ?? hints.vendor ?? '';
+            finalCategory = aiResult.category ?? '';
+            finalInvoiceNumber = aiResult.invoiceNumber ?? hints.invoiceNumber ?? '';
+          } else {
+            // No AI result found, use regex hints as best effort
+            finalDate = hints.date ?? null;
+            finalAmount = hints.amount ?? null;
+            finalCurrency = hints.currency;
+            finalVendor = hints.vendor ?? '';
+            finalInvoiceNumber = hints.invoiceNumber ?? '';
           }
         } catch (error) {
           const aiError = error as Error;
-          console.warn(`[Extraction] AI failed:`, aiError.message);
+          console.warn(`[Extraction] AI/Regex failed:`, aiError.message);
           
           if (aiError.message === 'LIMIT_REACHED') {
             setUpgradeOpen(true);
             setProgressCompleted(true);
-            updateFile(file.id, { extractionStatus: 'pending' }); // Reset status so it can be retried
-            break; // Stop processing the rest of the queue
+            updateFile(file.id, { extractionStatus: 'pending' });
+            break; 
           } else if (aiError.message === 'UNAUTHORIZED') {
             window.location.href = '/login';
             return;
           }
-          throw aiError; // Throw so the file is marked as failed
         }
 
         updateFile(file.id, {

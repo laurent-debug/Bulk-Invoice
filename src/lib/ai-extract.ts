@@ -15,25 +15,30 @@ export interface AIExtractionResult {
 /**
  * Build a strict, directive prompt for invoice data extraction
  */
-function buildPrompt(text: string, categories: string[], defaultCurrency: string): string {
-  return `Tu es un extracteur de factures expert. Retourne UNIQUEMENT un JSON valide, sans backticks, sans markdown, sans texte avant/après.
+function buildPrompt(text: string, categories: string[], defaultCurrency: string, hints?: AIExtractionResult): string {
+  const categoriesStr = categories.join(', ');
+  const hintsStr = hints ? `\n\nPreliminary detections (verify these): ${JSON.stringify(hints)}` : '';
 
-Champs obligatoires :
-- "date": string au format "YYYY-MM-DD" (date de la facture/ticket). Si tu trouves "11.03.2026" → "2026-03-11"
-- "amount": nombre avec 2 décimales (total TTC / montant total de la facture). DOIT être un nombre, PAS une string. Ex: 7.70
-- "currency": code devise en 3 lettres (CHF, EUR, USD, GBP). Par défaut "${defaultCurrency}" si non précisé
-- "vendor": string (nom du fournisseur/enseigne/magasin, PAS l'adresse)
-- "category": une parmi [${categories.join(', ')}]. Choisis la plus pertinente
-- "invoiceNumber": string (numéro de facture/reçu/ticket si présent)
+  return `You are an expert invoice data extractor. Analyze the provided text and return ONLY a valid JSON object.
+No markdown, no backticks, no preamble.
 
-Règles strictes :
-- Si une valeur est introuvable : mets null
-- "amount" DOIT être un nombre (ex: 7.70), JAMAIS une string
-- "date" DOIT être au format YYYY-MM-DD
-- Le fournisseur est l'enseigne/société émettrice (ex: "Denner", "Migros", "Swisscom"), PAS une adresse
-- Réponds UNIQUEMENT avec le JSON, rien d'autre
+Required Fields:
+- "date": string in "YYYY-MM-DD" format.
+- "amount": decimal number (total inclusive of tax). MUST be a number, NOT a string.
+- "currency": 3-letter currency code (CHF, EUR, USD, GBP). Default: "${defaultCurrency}".
+- "vendor": company/store name (e.g., "Swisscom", "Amazon", "Migros", "Lidl").
+- "category": choose the best from [${categoriesStr}].
+- "invoiceNumber": the invoice/receipt/reference number if present.
 
-Texte de la facture :
+Strict Rules:
+1. Support French (Facture, Total), German (Rechnung, Betrag, Quittung), and English.
+2. If a value is missing, return null.
+3. "amount" must be a number (e.g., 12.50), never a string.
+4. "date" must be YYYY-MM-DD.
+5. The "vendor" is the company name, not their address.
+6. Look for the GRAND TOTAL (Total TTC / Rechnungsbetrag).${hintsStr}
+
+Invoice Text:
 ${text.substring(0, 4000)}`;
 }
 
@@ -43,9 +48,10 @@ ${text.substring(0, 4000)}`;
 export async function aiExtractFields(
   text: string,
   categories: string[],
-  defaultCurrency: string = 'CHF'
+  defaultCurrency: string = 'CHF',
+  hints?: AIExtractionResult
 ): Promise<AIExtractionResult> {
-  const prompt = buildPrompt(text, categories, defaultCurrency);
+  const prompt = buildPrompt(text, categories, defaultCurrency, hints);
 
   try {
     const response = await callAIProxy(prompt);
@@ -65,27 +71,29 @@ export async function aiExtractWithVision(
   images: string[],
   text: string,
   categories: string[],
-  defaultCurrency: string = 'CHF'
+  defaultCurrency: string = 'CHF',
+  hints?: AIExtractionResult
 ): Promise<AIExtractionResult> {
 
-  const prompt = `Tu es un extracteur de factures expert. Analyse cette image de facture/ticket de caisse.
-Retourne UNIQUEMENT un JSON valide, sans backticks, sans markdown, sans texte avant/après.
+  const hintsStr = hints ? `\n\nPreliminary detections (verify these): ${JSON.stringify(hints)}` : '';
 
-Champs obligatoires :
-- "date": string au format "YYYY-MM-DD" (date de la facture/ticket)
-- "amount": nombre avec 2 décimales (total TTC / montant total). DOIT être un nombre, PAS une string. Inclus les montants manuscrits.
-- "currency": code devise en 3 lettres (CHF, EUR, USD, GBP). Par défaut "${defaultCurrency}"
-- "vendor": string (nom de l'enseigne/magasin/fournisseur visible sur le document)
-- "category": une parmi [${categories.join(', ')}]
-- "invoiceNumber": string (numéro de facture/reçu/ticket si visible)
+  const prompt = `You are an expert invoice data extractor via Vision. Analyze this document image.
+Return ONLY a valid JSON object. No markdown, no backticks.
 
-Règles strictes :
-- Lis TOUT le document attentivement, y compris les montants écrits à la main
-- Si une valeur est introuvable : mets null
-- "amount" DOIT être un nombre (ex: 7.70), JAMAIS une string
-- "date" DOIT être au format YYYY-MM-DD
-- Le fournisseur est l'enseigne/société (ex: "Denner", "Migros"), PAS l'adresse
-- Cherche le TOTAL TTC (pas les sous-totaux)`;
+Required Fields:
+- "date": string in "YYYY-MM-DD" format.
+- "amount": decimal number (total inclusive of tax). MUST be a number.
+- "currency": 3-letter currency code (CHF, EUR, USD, GBP). Default: "${defaultCurrency}".
+- "vendor": company/store name visible on the document.
+- "category": choose the best from [${categories.join(', ')}].
+- "invoiceNumber": the invoice/receipt number if visible.
+
+Strict Rules:
+1. Support French, German (Rechnung, Betrag, Datum), and English.
+2. Read the entire document carefully, including handwritten notes.
+3. If a value is missing, return null.
+4. "amount" must be a number (e.g., 7.70), never a string.
+5. Search for the GRAND TOTAL (Total TTC / Rechnungsbetrag / Total Amount).${hintsStr}`;
 
   try {
     console.log(`[AI Vision] Sending ${images.length} page image(s)...`);
@@ -96,7 +104,7 @@ Règles strictes :
     console.error('[AI Vision] Failed:', error);
     // Fall back to text-based extraction
     console.log('[AI Vision] Falling back to text mode...');
-    return aiExtractFields(text, categories, defaultCurrency);
+    return aiExtractFields(text, categories, defaultCurrency, hints);
   }
 }
 

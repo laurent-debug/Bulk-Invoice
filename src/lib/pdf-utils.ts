@@ -132,24 +132,34 @@ export async function renderPagesAsImages(blob: Blob, maxPages: number = 2): Pro
 // ============================================================
 
 interface ParsedInvoiceData {
-  date: string | null;
-  amount: number | null;
+  date?: string;
+  amount?: number;
   currency: string;
-  vendor: string | null;
-  invoiceNumber: string | null;
+  vendor?: string;
+  invoiceNumber?: string;
 }
 
 /**
  * Parse invoice text using regex patterns (supports FR/DE/EN invoices)
  */
 export function parseInvoiceData(text: string): ParsedInvoiceData {
-  return {
-    date: extractDate(text),
-    amount: extractAmount(text),
+  const data: ParsedInvoiceData = {
     currency: extractCurrency(text),
-    vendor: extractVendor(text),
-    invoiceNumber: extractInvoiceNumber(text),
   };
+  
+  const d = extractDate(text);
+  if (d) data.date = d;
+  
+  const a = extractAmount(text);
+  if (a !== null) data.amount = a;
+  
+  const v = extractVendor(text);
+  if (v) data.vendor = v;
+  
+  const n = extractInvoiceNumber(text);
+  if (n) data.invoiceNumber = n;
+
+  return data;
 }
 
 function extractDate(text: string): string | null {
@@ -182,8 +192,12 @@ function extractDate(text: string): string | null {
 }
 
 function extractAmount(text: string): number | null {
-  // Look for amounts near keywords
-  const keywords = ['total\\s*ttc', 'montant\\s*ttc', 'total\\s*à\\s*payer', 'net\\s*à\\s*payer', 'total', 'betrag', 'amount'];
+  // Look for amounts near keywords (FR, DE, EN)
+  const keywords = [
+    'total\\s*ttc', 'montant\\s*ttc', 'total\\s*à\\s*payer', 'net\\s*à\\s*payer',
+    'rechnungsbetrag', 'gesamtbetrag', 'endbetrag', 'betrag', 'summe',
+    'total', 'amount', 'grand\\s*total', 'total\\s*amount'
+  ];
   for (const kw of keywords) {
     const regex = new RegExp(`${kw}[^\\d]{0,20}(\\d[\\d\\s]*[.,]\\d{2})`, 'i');
     const match = text.match(regex);
