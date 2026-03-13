@@ -12,12 +12,13 @@ export interface AIExtractionResult {
   invoiceNumber?: string;
   paymentMethod?: string;
   dueDate?: string;
+  isCreditNote?: boolean;
 }
 
 /**
  * Build a strict, directive prompt for invoice data extraction
  */
-function buildPrompt(text: string, categories: string[], defaultCurrency: string, hints?: AIExtractionResult): string {
+function buildPrompt(text: string, categories: string[], defaultCurrency: string, userLang: string = 'en', hints?: AIExtractionResult): string {
   const categoriesStr = categories.join(', ');
   const hintsStr = hints ? `\n\nPreliminary detections (verify these): ${JSON.stringify(hints)}` : '';
 
@@ -29,18 +30,20 @@ Required Fields:
 - "amount": decimal number (total inclusive of tax). MUST be a number, NOT a string.
 - "currency": 3-letter currency code (CHF, EUR, USD, GBP). Default: "${defaultCurrency}".
 - "vendor": company/store name (e.g., "Swisscom", "Amazon", "Migros", "Lidl").
-- "category": choose the best from [${categoriesStr}].
+- "category": choose the best from [${categoriesStr}]. IMPORTANT: Return the category name exactly as provided in the list.
 - "invoiceNumber": the invoice/receipt/reference number if present.
 - "paymentMethod": for paid documents/receipts, identify the method (e.g., "Visa", "Mastercard", "Cash", "TWINT", "Amex"). If not paid or unknown, return null.
 - "dueDate": for unpaid invoices, identify the deadline/due date in "YYYY-MM-DD" format. If already paid or not found, return null.
+- "isCreditNote": boolean (true/false). Set to true if this is a Credit Note, Refund, Avoir, or Gutschrift.
 
 Strict Rules:
-1. Support French (Facture, Total), German (Rechnung, Betrag, Quittung), and English.
-2. If a value is missing, return null.
-3. "amount" must be a number (e.g., 12.50), never a string.
-4. "date" must be YYYY-MM-DD.
-5. The "vendor" is the company name, not their address.
-6. Look for the GRAND TOTAL (Total TTC / Rechnungsbetrag).${hintsStr}
+1. Support French (Facture, Total, Avoir), German (Rechnung, Betrag, Quittung, Gutschrift), and English (Invoice, Receipt, Credit Note, Refund).
+2. Use the following language for vendor identification and any text analysis: ${userLang}.
+3. If a value is missing, return null or false for boolean.
+4. "amount" must be a number (positive total from document).
+5. "date" must be YYYY-MM-DD.
+6. The "vendor" is the company name, not their address.
+7. Look for the GRAND TOTAL (Total TTC / Rechnungsbetrag).${hintsStr}
 
 Invoice Text:
 ${text.substring(0, 4000)}`;
@@ -53,9 +56,10 @@ export async function aiExtractFields(
   text: string,
   categories: string[],
   defaultCurrency: string = 'CHF',
+  userLang: string = 'en',
   hints?: AIExtractionResult
 ): Promise<AIExtractionResult> {
-  const prompt = buildPrompt(text, categories, defaultCurrency, hints);
+  const prompt = buildPrompt(text, categories, defaultCurrency, userLang, hints);
 
   try {
     const response = await callAIProxy(prompt);
@@ -76,6 +80,7 @@ export async function aiExtractWithVision(
   text: string,
   categories: string[],
   defaultCurrency: string = 'CHF',
+  userLang: string = 'en',
   hints?: AIExtractionResult
 ): Promise<AIExtractionResult> {
 
@@ -93,13 +98,15 @@ Required Fields:
 - "invoiceNumber": the invoice/receipt number if visible.
 - "paymentMethod": identify payment method for receipts (Visa, Mastercard, Cash, TWINT).
 - "dueDate": identify due date for unpaid invoices in "YYYY-MM-DD" format.
+- "isCreditNote": boolean (true/false).
 
 Strict Rules:
-1. Support French, German (Rechnung, Betrag, Datum), and English.
-2. Read the entire document carefully, including handwritten notes.
-3. If a value is missing, return null.
-4. "amount" must be a number (e.g., 7.70), never a string.
-5. Search for the GRAND TOTAL (Total TTC / Rechnungsbetrag / Total Amount).${hintsStr}`;
+1. Support French, German (Rechnung, Betrag, Datum, Gutschrift), and English.
+2. User's primary language is ${userLang}.
+3. Read the entire document carefully, including handwritten notes.
+4. If a value is missing, return null.
+5. "amount" must be a number (positive total from document).
+6. Search for the GRAND TOTAL (Total TTC / Rechnungsbetrag / Total Amount).${hintsStr}`;
 
   try {
     console.log(`[AI Vision] Sending ${images.length} page image(s)...`);
@@ -110,7 +117,7 @@ Strict Rules:
     console.error('[AI Vision] Failed:', error);
     // Fall back to text-based extraction
     console.log('[AI Vision] Falling back to text mode...');
-    return aiExtractFields(text, categories, defaultCurrency, hints);
+    return aiExtractFields(text, categories, defaultCurrency, userLang, hints);
   }
 }
 
@@ -224,6 +231,15 @@ function parseAIResponse(response: string): AIExtractionResult {
         const parts = dateStr.split(/[./]/);
         result.dueDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
       }
+    }
+
+    // Is Credit Note
+    if (typeof parsed.isCreditNote === 'boolean') {
+      result.isCreditNote = parsed.isCreditNote;
+    } else if (typeof parsed.isCreditNote === 'string') {
+      result.isCreditNote = parsed.isCreditNote.toLowerCase() === 'true';
+    } else {
+      result.isCreditNote = false;
     }
 
     console.log('[AI] Parsed result:', result);

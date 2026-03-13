@@ -27,6 +27,7 @@ export interface InvoiceFile {
   extractionStatus: 'pending' | 'extracting' | 'done' | 'error';
   paymentMethod: string | null;       // Visa, Mastercard, Cash, etc.
   dueDate: string | null;             // ISO string for unpaid invoices
+  isCreditNote: boolean;              // detected or manual override
   extractionError?: string;
 }
 
@@ -66,32 +67,32 @@ export const AI_MODELS: Record<AIProvider, { model: string; name: string; inputC
     model: 'gemini-2.0-flash',
     name: 'Google Gemini 2.0 Flash',
     inputCostPer1M: 0.10,
-    description: 'Le moins cher, rapide et efficace',
+    description: 'Cheapest, fast and efficient',
   },
   openai: {
     model: 'gpt-4o-mini',
     name: 'OpenAI GPT-4o Mini',
     inputCostPer1M: 0.15,
-    description: 'Bon rapport qualité/prix',
+    description: 'Good balance of quality and price',
   },
   deepseek: {
     model: 'deepseek-chat',
     name: 'DeepSeek V3',
     inputCostPer1M: 0.27,
-    description: 'Alternative économique',
+    description: 'Budget alternative',
   },
 };
 
 export const DEFAULT_CATEGORIES = [
-  'Loyer',
-  'Assurance',
-  'Télécom',
-  'Fournitures',
-  'Transport',
-  'Repas',
-  'Honoraires',
-  'Énergie',
-  'Autre',
+  'Rent',
+  'Insurance',
+  'Telecom',
+  'Supplies',
+  'Travel',
+  'Meals',
+  'Fees',
+  'Energy',
+  'Other',
 ];
 
 export const DEFAULT_PATTERN: NamingPattern = {

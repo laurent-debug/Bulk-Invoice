@@ -20,7 +20,9 @@ export function generateFileName(file: InvoiceFile, pattern: NamingPattern): str
     return file.originalName;
   }
 
-  return `${fileName.trim()}.pdf`;
+  const result = fileName.trim();
+  const prefix = file.isCreditNote ? 'AVOIR-' : '';
+  return `${prefix}${result}.pdf`;
 }
 
 function getTokenValue(
@@ -33,9 +35,9 @@ function getTokenValue(
       return formatDate(file.extractedDate, pattern.dateFormat);
 
     case 'amount':
-      return file.extractedAmount !== null
-        ? file.extractedAmount.toFixed(2)
-        : '0.00';
+      if (file.extractedAmount === null) return '0.00';
+      const absAmount = Math.abs(file.extractedAmount).toFixed(2);
+      return file.isCreditNote ? `-${absAmount}` : absAmount;
 
     case 'currency':
       // Return currency if showCurrencyAlways is true

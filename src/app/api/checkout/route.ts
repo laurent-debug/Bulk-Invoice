@@ -21,8 +21,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Already subscribed' }, { status: 400 });
     }
 
-    // Replace with your actual Price ID from Stripe Dashboard
-    const priceId = process.env.STRIPE_PRICE_ID || 'price_placeholder'; 
+    const { currency } = await req.json();
+
+    // Mapping of currency to Price ID from Environment Variables
+    const priceMap: Record<string, string | undefined> = {
+      'CHF': process.env.STRIPE_PRICE_ID_CHF || process.env.STRIPE_PRICE_ID,
+      'EUR': process.env.STRIPE_PRICE_ID_EUR || process.env.STRIPE_PRICE_ID,
+      'USD': process.env.STRIPE_PRICE_ID_USD || process.env.STRIPE_PRICE_ID,
+      'GBP': process.env.STRIPE_PRICE_ID_GBP || process.env.STRIPE_PRICE_ID,
+    };
+
+    const priceId = priceMap[currency] || process.env.STRIPE_PRICE_ID || 'price_placeholder'; 
 
     let customerId = profile?.stripe_customer_id;
 

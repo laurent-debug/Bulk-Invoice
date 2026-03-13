@@ -45,12 +45,25 @@ export function PatternEditor() {
   useEffect(() => {
     const raw = pattern.raw || '';
     let result = raw;
+    
+    // Dynamic date example based on format
+    const dateExample = pattern.dateFormat === 'YYYY-MM-DD' ? '2026-03-11' : 
+                       pattern.dateFormat === 'DD-MM-YYYY' ? '11-03-2026' : '260311';
+    
+    
+
     ALL_TOKENS.forEach((token) => {
       const regex = new RegExp(`\\[${token}\\]`, 'g');
-      result = result.replace(regex, TOKEN_INFO[token].example);
+      let example = TOKEN_INFO[token].example;
+      if (token === 'date') example = dateExample;
+      if (token === 'dueDate') {
+         example = pattern.dateFormat === 'YYYY-MM-DD' ? '2026-04-11' : 
+                   pattern.dateFormat === 'DD-MM-YYYY' ? '11-04-2026' : '260411';
+      }
+      result = result.replace(regex, example);
     });
     setPreview(result ? result + '.pdf' : '');
-  }, [pattern.raw]);
+  }, [pattern.raw, pattern.dateFormat]);
 
   const insertToken = (token: TokenType) => {
     const input = inputRef.current;
@@ -92,6 +105,7 @@ export function PatternEditor() {
                 const defaultRaw = '[date]_[amount]_[currency]_[vendor]_[category]_[invoiceNumber]';
                 setPattern({ raw: defaultRaw });
               }}
+              aria-label="Reset naming pattern to default"
             >
               Reset to Default
             </Button>
@@ -108,6 +122,7 @@ export function PatternEditor() {
                 onChange={(e) => setPattern({ raw: e.target.value })}
                 placeholder="Ex: [date]-[vendor]-[amount].pdf"
                 className="w-full bg-black/20 border border-white/10 rounded-xl text-white font-mono text-base h-16 px-5 focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500/50 transition-all placeholder:text-gray-700"
+                aria-label="File naming pattern"
               />
               <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2 opacity-50 group-hover:opacity-100 transition-opacity">
                 <span className="text-[10px] text-gray-500 font-mono">.pdf</span>
@@ -225,6 +240,7 @@ export function PatternEditor() {
                 onChange={(e) => setNewCat(e.target.value)}
                 placeholder="New category…"
                 className="bg-white/5 border-white/10 text-white text-sm flex-1 h-9"
+                aria-label="New business category"
               />
               <Button type="submit" variant="outline" className="h-9 border-white/10 text-gray-300 hover:text-white">
                 Add
@@ -243,6 +259,7 @@ export function PatternEditor() {
                       type="button"
                       onClick={() => removeCategory(cat)}
                       className="ml-1 rounded-full hover:bg-white/10 p-0.5"
+                      aria-label={`Remove category ${cat}`}
                     >
                       <svg className="h-2 w-2 text-gray-500 group-hover:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />

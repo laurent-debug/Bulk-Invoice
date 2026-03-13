@@ -7,6 +7,8 @@ import { useAppStore } from '@/lib/store';
 import type { InvoiceFile } from '@/lib/types';
 
 import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
+import { DEFAULT_CATEGORIES } from '@/lib/types';
 
 const MAX_FILES = 50;
 const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20 MB
@@ -14,6 +16,7 @@ const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20 MB
 export function DropZone({ onFilesAdded, onLimitReached }: { onFilesAdded: () => void; onLimitReached: () => void }) {
   const { files, addFiles, user, isPro, filesProcessed } = useAppStore();
   const router = useRouter();
+  const { t, i18n } = useTranslation();
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
@@ -30,6 +33,9 @@ export function DropZone({ onFilesAdded, onLimitReached }: { onFilesAdded: () =>
       const remaining = MAX_FILES - files.length;
       const filesToProcess = acceptedFiles.slice(0, remaining);
 
+      const currencyMap: Record<string, string> = { 'fr': 'EUR', 'de': 'EUR', 'en-US': 'USD', 'en-GB': 'GBP' };
+      const defaultCurrency = currencyMap[i18n.language] || currencyMap[i18n.language.split('-')[0]] || 'CHF';
+
       const invoiceFiles: InvoiceFile[] = filesToProcess.map((file) => ({
         id: uuidv4(),
         originalName: file.name,
@@ -39,7 +45,7 @@ export function DropZone({ onFilesAdded, onLimitReached }: { onFilesAdded: () =>
         ocrUsed: false,
         extractedDate: null,
         extractedAmount: null,
-        extractedCurrency: 'CHF',
+        extractedCurrency: defaultCurrency,
         extractedVendor: null,
         extractedInvoiceNumber: null,
         category: '',
@@ -48,6 +54,7 @@ export function DropZone({ onFilesAdded, onLimitReached }: { onFilesAdded: () =>
         extractionStatus: 'pending' as const,
         paymentMethod: null,
         dueDate: null,
+        isCreditNote: false,
       }));
 
       addFiles(invoiceFiles);
@@ -111,7 +118,7 @@ export function DropZone({ onFilesAdded, onLimitReached }: { onFilesAdded: () =>
           {!user ? (
             <>
               <p className="text-xl font-bold text-white mb-2">
-                Test with your invoices (0 / 5 free)
+                {t('hero.title')}
               </p>
               <button 
                 className="mt-2 rounded-lg bg-violet-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-violet-500/30 hover:bg-violet-500 transition-colors"
@@ -121,20 +128,20 @@ export function DropZone({ onFilesAdded, onLimitReached }: { onFilesAdded: () =>
                   router.push('/login');
                 }}
               >
-                Sign up to test for free
+                {t('common.signin')}
               </button>
             </>
           ) : (
             <>
               <p className="text-lg font-medium text-white mb-2">
-                {isDragActive ? 'Drop your files here' : 'Drag & drop invoice PDFs here'}
+                {isDragActive ? t('dropzone.drop') : t('dropzone.drag')}
               </p>
               <p className="text-gray-400">
-                or <span className="text-violet-400 underline underline-offset-2">browse files</span>
+                {t('dropzone.browse')}
               </p>
               {!isPro && (
                 <div className="mt-3 inline-flex items-center rounded-full bg-violet-500/10 px-3 py-1 text-sm font-medium text-violet-300 border border-violet-500/20">
-                  Free Trial: {filesProcessed} / 5 invoices used
+                  {t('dropzone.trial', { used: filesProcessed })}
                 </div>
               )}
             </>

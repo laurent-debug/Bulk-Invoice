@@ -204,6 +204,23 @@ export const useAppStore = create<AppState>()(
           merged.pattern.showCurrencyAlways = false;
         }
 
+        // Migrate French categories to English
+        const categoryMap: Record<string, string> = {
+          'Loyer': 'Rent',
+          'Assurance': 'Insurance',
+          'Télécom': 'Telecom',
+          'Fournitures': 'Supplies',
+          'Transport': 'Travel',
+          'Repas': 'Meals',
+          'Honoraires': 'Fees',
+          'Énergie': 'Energy',
+          'Autre': 'Other'
+        };
+
+        if (merged.categories) {
+          merged.categories = merged.categories.map((cat: string) => categoryMap[cat] || cat);
+        }
+
         return merged;
       },
     }

@@ -113,6 +113,9 @@ export function FileTable() {
                   {file.extractionStatus === 'error' && (
                     <Badge variant="outline" className="text-[10px] border-red-500/30 text-red-400 h-4 px-1.5">Error</Badge>
                   )}
+                  {file.isCreditNote && (
+                    <Badge variant="outline" className="text-[10px] border-emerald-500/50 text-emerald-300 bg-emerald-500/10 h-4 px-1.5">CREDIT NOTE</Badge>
+                  )}
                 </div>
 
                 {/* Editable fields grid */}
@@ -245,6 +248,16 @@ export function FileTable() {
                       value={file.dueDate || ''}
                       onChange={(e) => updateFile(file.id, { dueDate: e.target.value || null })}
                       className={`h-7 text-xs bg-white/5 border-white/10 text-white ${!file.dueDate && file.extractedAmount !== null && !file.paymentMethod ? 'border-amber-500/30' : ''}`}
+                    />
+                  </div>
+
+                  {/* Credit Note Toggle */}
+                  <div className="flex flex-col justify-end pb-1">
+                    <label className="text-[10px] text-gray-500 mb-1 block">Avoir</label>
+                    <Checkbox
+                      checked={file.isCreditNote}
+                      onCheckedChange={(checked) => updateFile(file.id, { isCreditNote: !!checked })}
+                      className="h-5 w-5 border-white/20 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
                     />
                   </div>
                 </div>

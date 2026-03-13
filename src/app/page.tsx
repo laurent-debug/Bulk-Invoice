@@ -13,12 +13,14 @@ import { useAppStore } from '@/lib/store';
 import { smartExtract, generateThumbnail, parseInvoiceData, renderPagesAsImages } from '@/lib/pdf-utils';
 import { aiExtractFields, aiExtractWithVision } from '@/lib/ai-extract';
 import { createAndDownloadZip } from '@/lib/zip-utils';
+import { useTranslation } from 'react-i18next';
 
 export default function HomePage() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [showWorkspace, setShowWorkspace] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const { t, i18n } = useTranslation();
 
   // Progress modal state
   const [progressOpen, setProgressOpen] = useState(false);
@@ -88,13 +90,13 @@ export default function HomePage() {
             console.log(`[Extraction] Rendering PDF pages as images for vision...`);
             const pageImages = await renderPagesAsImages(file.fileBlob, 2);
             console.log(`[Extraction] Sending ${pageImages.length} image(s) to AI vision...`);
-            // Pass the regex hints to the AI
-            aiResult = await aiExtractWithVision(pageImages, text, categories, pattern.defaultCurrency, hints);
+            // Pass the regex hints and user language to the AI
+            aiResult = await aiExtractWithVision(pageImages, text, categories, pattern.defaultCurrency, i18n.language, hints);
           } catch (visionError) {
             console.log(`[Extraction] Using text mode (Reason: ${visionError instanceof Error ? visionError.message : 'failed'})`);
-            // Fall back to text-only AI with hints
+            // Fall back to text-only AI with hints and user language
             if (text.length > 5) {
-              aiResult = await aiExtractFields(text, categories, pattern.defaultCurrency, hints);
+              aiResult = await aiExtractFields(text, categories, pattern.defaultCurrency, i18n.language, hints);
             }
           }
 
@@ -211,11 +213,11 @@ export default function HomePage() {
         {!showWorkspace && (
           <div className="pt-12 pb-4 text-center">
             <h2 className="text-3xl sm:text-4xl font-bold text-white mb-3 tracking-tight">
-              Rename your invoices
-              <span className="bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent"> in bulk</span>
+              {t('hero.title').split(' ').slice(0, -2).join(' ')}
+              <span className="bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent"> {t('hero.title').split(' ').slice(-2).join(' ')}</span>
             </h2>
             <p className="text-gray-400 max-w-xl mx-auto text-sm sm:text-base px-6">
-              Upload your PDFs, data extraction is fully automatic via our secure server-side AI processing.
+              {t('hero.subtitle')}
             </p>
 
             {/* Feature badges */}
