@@ -30,7 +30,7 @@ Required Fields:
 - "amount": decimal number (total inclusive of tax). MUST be a number, NOT a string.
 - "currency": 3-letter currency code (CHF, EUR, USD, GBP). Default: "${defaultCurrency}".
 - "vendor": company/store name (e.g., "Swisscom", "Amazon", "Migros", "Lidl").
-- "category": choose the BEST MATCH from this exact list: [${categoriesStr}]. You MUST pick one of these. DO NOT invent new categories. If nothing matches perfectly, pick the closest logical category (e.g. pick "Supplies" or "Other" if uncertain).
+- "category": First, determine the natural business category of this document (e.g., Marketing, Software, Groceries, Hardware). If it logically matches one of these user-defined categories: [${categoriesStr}], use that exact predefined category name. If there is NO good match in the predefined list, DO NOT default to "Other" or "SANS-CAT". Instead, output your own logical, short category name (max 2 words) in the language: ${userLang}.
 - "invoiceNumber": the invoice/receipt/reference number if present.
 - "paymentMethod": for paid documents/receipts, identify the method (e.g., "Visa", "Mastercard", "Cash", "TWINT", "Amex"). If not paid or unknown, return null.
 - "dueDate": for unpaid invoices, identify the deadline/due date in "YYYY-MM-DD" format. If already paid or not found, return null.
@@ -94,7 +94,7 @@ Required Fields:
 - "amount": decimal number (total inclusive of tax). MUST be a number.
 - "currency": 3-letter currency code (CHF, EUR, USD, GBP). Default: "${defaultCurrency}".
 - "vendor": company/store name visible on the document.
-- "category": choose the BEST MATCH from this exact list: [${categories.join(', ')}]. You MUST pick one of these. DO NOT invent new categories.
+- "category": First, determine the natural business category of this document (e.g., Marketing, Groceries). If it logically matches one of these user-defined categories: [${categories.join(', ')}], use that exact predefined category name. If there is NO good match, output your own short, logical category name (max 2 words) in the language: ${userLang}.
 - "invoiceNumber": the invoice/receipt number if visible.
 - "paymentMethod": identify payment method for receipts (Visa, Mastercard, Cash, TWINT).
 - "dueDate": identify due date for unpaid invoices in "YYYY-MM-DD" format.
