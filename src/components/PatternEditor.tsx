@@ -15,9 +15,11 @@ const TOKEN_INFO: Record<TokenType, { label: string; example: string }> = {
   vendor: { label: 'Vendor', example: 'Acme_Corp' },
   category: { label: 'Category', example: 'Supplies' },
   invoiceNumber: { label: 'Invoice N°', example: 'INV-001' },
+  paymentMethod: { label: 'Payment', example: 'Visa' },
+  dueDate: { label: 'Due Date', example: '260411' },
 };
 
-const ALL_TOKENS: TokenType[] = ['date', 'amount', 'currency', 'vendor', 'category', 'invoiceNumber'];
+const ALL_TOKENS: TokenType[] = ['date', 'amount', 'currency', 'vendor', 'category', 'invoiceNumber', 'paymentMethod', 'dueDate'];
 
 export function PatternEditor() {
   const { pattern, setPattern, categories, addCategory, removeCategory, exportGrouping, setExportGrouping } = useAppStore();

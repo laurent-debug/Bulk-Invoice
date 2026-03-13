@@ -116,7 +116,7 @@ export function FileTable() {
                 </div>
 
                 {/* Editable fields grid */}
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 mb-2">
+                <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-2 mb-2">
                   {/* Date */}
                   <div>
                     <label className="text-[10px] text-gray-500 mb-0.5 block">Date</label>
@@ -223,6 +223,28 @@ export function FileTable() {
                       onChange={(e) => updateFile(file.id, { extractedInvoiceNumber: e.target.value || null })}
                       placeholder="—"
                       className={`h-7 text-xs bg-white/5 border-white/10 text-white ${!file.extractedInvoiceNumber ? 'border-amber-500/30' : ''}`}
+                    />
+                  </div>
+
+                  {/* Payment Method */}
+                  <div>
+                    <label className="text-[10px] text-gray-500 mb-0.5 block">Payment</label>
+                    <Input
+                      value={file.paymentMethod || ''}
+                      onChange={(e) => updateFile(file.id, { paymentMethod: e.target.value || null })}
+                      placeholder="Pay Method"
+                      className="h-7 text-xs bg-white/5 border-white/10 text-white"
+                    />
+                  </div>
+
+                  {/* Due Date */}
+                  <div>
+                    <label className="text-[10px] text-gray-500 mb-0.5 block">Due Date</label>
+                    <Input
+                      type="date"
+                      value={file.dueDate || ''}
+                      onChange={(e) => updateFile(file.id, { dueDate: e.target.value || null })}
+                      className={`h-7 text-xs bg-white/5 border-white/10 text-white ${!file.dueDate && file.extractedAmount !== null && !file.paymentMethod ? 'border-amber-500/30' : ''}`}
                     />
                   </div>
                 </div>

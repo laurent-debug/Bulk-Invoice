@@ -46,6 +46,8 @@ export function DropZone({ onFilesAdded, onLimitReached }: { onFilesAdded: () =>
         isSelected: true,
         newName: file.name,
         extractionStatus: 'pending' as const,
+        paymentMethod: null,
+        dueDate: null,
       }));
 
       addFiles(invoiceFiles);

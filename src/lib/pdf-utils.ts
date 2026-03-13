@@ -137,6 +137,8 @@ interface ParsedInvoiceData {
   currency: string;
   vendor?: string;
   invoiceNumber?: string;
+  paymentMethod?: string;
+  dueDate?: string;
 }
 
 /**
@@ -158,6 +160,12 @@ export function parseInvoiceData(text: string): ParsedInvoiceData {
   
   const n = extractInvoiceNumber(text);
   if (n) data.invoiceNumber = n;
+
+  const pm = extractPaymentMethod(text);
+  if (pm) data.paymentMethod = pm;
+
+  const dd = extractDueDate(text);
+  if (dd) data.dueDate = dd;
 
   return data;
 }
@@ -279,6 +287,36 @@ function extractInvoiceNumber(text: string): string | null {
     }
   }
 
+  return null;
+}
+
+function extractPaymentMethod(text: string): string | null {
+  const upper = text.toUpperCase();
+  if (upper.includes('VISA')) return 'Visa';
+  if (upper.includes('MASTERCARD')) return 'Mastercard';
+  if (upper.includes('TWINT')) return 'TWINT';
+  if (upper.includes('AMEX') || upper.includes('AMERICAN EXPRESS')) return 'Amex';
+  if (upper.includes('CASH') || upper.includes('ESPÈCES') || upper.includes('BARZAHLUNG')) return 'Cash';
+  if (upper.includes('MAESTRO')) return 'Maestro';
+  if (upper.includes('PAYPAL')) return 'PayPal';
+  return null;
+}
+
+function extractDueDate(text: string): string | null {
+  const patterns = [
+    /(?:due\s*date|date\s*d'échéance|fälligkeitsdatum|échéance|zahlbar\s*bis)\s*[:\s]+(\d{2}[./]\d{2}[./]\d{4})/i,
+    /(?:due\s*date|date\s*d'échéance|fälligkeitsdatum|échéance|zahlbar\s*bis)\s*[:\s]+(\d{4}-\d{2}-\d{2})/i,
+  ];
+
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match) {
+      const d = match[1];
+      if (d.includes('-')) return d;
+      const parts = d.split(/[./]/);
+      return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+  }
   return null;
 }
 

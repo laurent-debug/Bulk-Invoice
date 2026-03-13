@@ -73,6 +73,8 @@ export default function HomePage() {
         let finalVendor = '';
         let finalInvoiceNumber = '';
         let finalCategory = '';
+        let finalPaymentMethod = '';
+        let finalDueDate = null;
 
         try {
           // 4a. Run local Regex first (fast, multi-language support)
@@ -105,6 +107,8 @@ export default function HomePage() {
             finalVendor = aiResult.vendor ?? hints.vendor ?? '';
             finalCategory = aiResult.category ?? '';
             finalInvoiceNumber = aiResult.invoiceNumber ?? hints.invoiceNumber ?? '';
+            finalPaymentMethod = aiResult.paymentMethod ?? hints.paymentMethod ?? '';
+            finalDueDate = aiResult.dueDate ?? hints.dueDate ?? null;
           } else {
             // No AI result found, use regex hints as best effort
             finalDate = hints.date ?? null;
@@ -112,6 +116,8 @@ export default function HomePage() {
             finalCurrency = hints.currency;
             finalVendor = hints.vendor ?? '';
             finalInvoiceNumber = hints.invoiceNumber ?? '';
+            finalPaymentMethod = hints.paymentMethod ?? '';
+            finalDueDate = hints.dueDate ?? null;
           }
         } catch (error) {
           const aiError = error as Error;
@@ -135,6 +141,8 @@ export default function HomePage() {
           extractedVendor: finalVendor,
           extractedInvoiceNumber: finalInvoiceNumber,
           category: finalCategory,
+          paymentMethod: finalPaymentMethod,
+          dueDate: finalDueDate,
           thumbnailDataUrl,
           ocrUsed,
           extractionStatus: 'done',

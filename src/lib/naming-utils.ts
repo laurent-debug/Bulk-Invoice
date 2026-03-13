@@ -10,8 +10,8 @@ export function generateFileName(file: InvoiceFile, pattern: NamingPattern): str
   // Fallback for old persisted format (tokens + separator)
   let fileName = pattern.raw || '[date]_[amount]_[currency]_[vendor]_[category]_[invoiceNumber]';
 
-  // Replace tokens like [date], [amount], etc.
-  fileName = fileName.replace(/\[(date|amount|currency|vendor|category|invoiceNumber)\]/g, (match, token) => {
+  // Replace tokens like [date], [amount], [paymentMethod], etc.
+  fileName = fileName.replace(/\[(date|amount|currency|vendor|category|invoiceNumber|paymentMethod|dueDate)\]/g, (match, token) => {
     return getTokenValue(file, token, pattern) || '';
   });
 
@@ -58,6 +58,12 @@ function getTokenValue(
 
     case 'invoiceNumber':
       return file.extractedInvoiceNumber || 'SANS-NUM';
+
+    case 'paymentMethod':
+      return file.paymentMethod ? sanitize(file.paymentMethod, 15) : 'PAY';
+
+    case 'dueDate':
+      return file.dueDate ? formatDate(file.dueDate, pattern.dateFormat) : 'NONE';
 
     default:
       return null;

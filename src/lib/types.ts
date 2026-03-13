@@ -2,7 +2,7 @@
 // Bulk-Invoice-Formatting — Core Types
 // ============================================================
 
-export type TokenType = 'date' | 'amount' | 'currency' | 'vendor' | 'category' | 'invoiceNumber';
+export type TokenType = 'date' | 'amount' | 'currency' | 'vendor' | 'category' | 'invoiceNumber' | 'paymentMethod' | 'dueDate';
 export type SeparatorType = '_' | '-' | '.' | ' ';
 export type DateFormatType = 'YYMMDD' | 'YYYY-MM-DD' | 'DD-MM-YYYY';
 export type AIProvider = 'gemini' | 'openai' | 'deepseek';
@@ -25,6 +25,8 @@ export interface InvoiceFile {
   isSelected: boolean;
   newName: string;                    // computed
   extractionStatus: 'pending' | 'extracting' | 'done' | 'error';
+  paymentMethod: string | null;       // Visa, Mastercard, Cash, etc.
+  dueDate: string | null;             // ISO string for unpaid invoices
   extractionError?: string;
 }
 

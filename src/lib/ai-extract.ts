@@ -10,6 +10,8 @@ export interface AIExtractionResult {
   vendor?: string;
   category?: string;
   invoiceNumber?: string;
+  paymentMethod?: string;
+  dueDate?: string;
 }
 
 /**
@@ -29,6 +31,8 @@ Required Fields:
 - "vendor": company/store name (e.g., "Swisscom", "Amazon", "Migros", "Lidl").
 - "category": choose the best from [${categoriesStr}].
 - "invoiceNumber": the invoice/receipt/reference number if present.
+- "paymentMethod": for paid documents/receipts, identify the method (e.g., "Visa", "Mastercard", "Cash", "TWINT", "Amex"). If not paid or unknown, return null.
+- "dueDate": for unpaid invoices, identify the deadline/due date in "YYYY-MM-DD" format. If already paid or not found, return null.
 
 Strict Rules:
 1. Support French (Facture, Total), German (Rechnung, Betrag, Quittung), and English.
@@ -87,6 +91,8 @@ Required Fields:
 - "vendor": company/store name visible on the document.
 - "category": choose the best from [${categories.join(', ')}].
 - "invoiceNumber": the invoice/receipt number if visible.
+- "paymentMethod": identify payment method for receipts (Visa, Mastercard, Cash, TWINT).
+- "dueDate": identify due date for unpaid invoices in "YYYY-MM-DD" format.
 
 Strict Rules:
 1. Support French, German (Rechnung, Betrag, Datum), and English.
@@ -202,6 +208,22 @@ function parseAIResponse(response: string): AIExtractionResult {
     // Invoice number
     if (typeof parsed.invoiceNumber === 'string' && parsed.invoiceNumber !== 'null' && parsed.invoiceNumber.length > 0) {
       result.invoiceNumber = parsed.invoiceNumber.trim();
+    }
+    
+    // Payment Method
+    if (typeof parsed.paymentMethod === 'string' && parsed.paymentMethod !== 'null' && parsed.paymentMethod.length > 0) {
+      result.paymentMethod = parsed.paymentMethod.trim();
+    }
+
+    // Due Date
+    if (typeof parsed.dueDate === 'string' && parsed.dueDate !== 'null') {
+      const dateStr = parsed.dueDate.trim();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+        result.dueDate = dateStr;
+      } else if (/^\d{2}[./]\d{2}[./]\d{4}$/.test(dateStr)) {
+        const parts = dateStr.split(/[./]/);
+        result.dueDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+      }
     }
 
     console.log('[AI] Parsed result:', result);
