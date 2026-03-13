@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { TokenType, DateFormatType } from '@/lib/types';
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const TOKEN_INFO: Record<TokenType, { label: string; example: string }> = {
   date: { label: 'Date', example: '260311' },
@@ -22,6 +23,7 @@ const TOKEN_INFO: Record<TokenType, { label: string; example: string }> = {
 const ALL_TOKENS: TokenType[] = ['date', 'amount', 'currency', 'vendor', 'category', 'invoiceNumber', 'paymentMethod', 'dueDate'];
 
 export function PatternEditor() {
+  const { t } = useTranslation();
   const { pattern, setPattern, categories, addCategory, removeCategory, exportGrouping, setExportGrouping } = useAppStore();
   const inputRef = useRef<HTMLInputElement>(null);
   const [displayValue, setDisplayValue] = useState(pattern.raw || '');
@@ -91,10 +93,10 @@ export function PatternEditor() {
             <div>
               <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse" />
-                File Naming Pattern
+                {t('pattern.title')}
               </h3>
               <p className="text-xs text-gray-400 max-w-lg">
-                Customize how your invoices are renamed. Freely type your separators (dashes, dots, spaces) in the field below.
+                {t('pattern.desc')}
               </p>
             </div>
             <Button
@@ -105,9 +107,9 @@ export function PatternEditor() {
                 const defaultRaw = '[date]_[amount]_[currency]_[vendor]_[category]_[invoiceNumber]';
                 setPattern({ raw: defaultRaw });
               }}
-              aria-label="Reset naming pattern to default"
+              aria-label={t('pattern.reset')}
             >
-              Reset to Default
+              {t('pattern.reset')}
             </Button>
           </div>
         </div>
@@ -130,14 +132,14 @@ export function PatternEditor() {
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[10px] text-gray-500 uppercase tracking-wider font-bold mr-2">Click to add :</span>
+              <span className="text-[10px] text-gray-500 uppercase tracking-wider font-bold mr-2">{t('pattern.clickToAdd')}</span>
               {ALL_TOKENS.map((token) => (
                 <button
                   key={token}
                   onClick={() => insertToken(token)}
                   className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/5 hover:border-violet-500/40 hover:bg-violet-500/10 text-[11px] text-gray-300 transition-all active:scale-95"
                 >
-                  {TOKEN_INFO[token].label}
+                  {t(`token.${token}`)}
                 </button>
               ))}
             </div>
@@ -148,7 +150,7 @@ export function PatternEditor() {
             {/* Options */}
             <div className="flex flex-wrap items-center gap-6 p-4 rounded-xl bg-white/[0.02] border border-white/5">
               <div className="space-y-1.5">
-                <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest pl-1">Date Format</span>
+                <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest pl-1">{t('pattern.dateFormat')}</span>
                 <Select
                   value={(pattern.dateFormat as string) || 'YYMMDD'}
                   onValueChange={(v) => setPattern({ dateFormat: (v || 'YYMMDD') as DateFormatType })}
@@ -165,7 +167,7 @@ export function PatternEditor() {
               </div>
 
               <div className="space-y-1.5">
-                <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest pl-1">Local Currency</span>
+                <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest pl-1">{t('pattern.localCurrency')}</span>
                 <Select
                   value={(pattern.defaultCurrency as string) || 'CHF'}
                   onValueChange={(v) => setPattern({ defaultCurrency: v || 'CHF' })}
@@ -189,7 +191,7 @@ export function PatternEditor() {
               </div>
 
               <div className="space-y-1.5">
-                <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest pl-1">Currency Rule</span>
+                <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest pl-1">{t('pattern.currencyRule')}</span>
                 <Select
                   value={pattern.showCurrencyAlways ? 'always' : 'conditional'}
                   onValueChange={(v) => setPattern({ showCurrencyAlways: v === 'always' })}
@@ -198,8 +200,8 @@ export function PatternEditor() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-gray-950 border-white/10">
-                    <SelectItem value="conditional">Hide if {pattern.defaultCurrency}</SelectItem>
-                    <SelectItem value="always">Always show</SelectItem>
+                    <SelectItem value="conditional">{t('pattern.hideIf', { currency: pattern.defaultCurrency })}</SelectItem>
+                    <SelectItem value="always">{t('pattern.alwaysShow')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -208,16 +210,16 @@ export function PatternEditor() {
             {/* Preview Card */}
             <div className="relative group overflow-hidden rounded-xl border border-emerald-500/20 bg-emerald-500/[0.02] p-5">
               <div className="absolute top-0 right-0 p-2">
-                 <div className="text-[9px] font-bold text-emerald-500/50 uppercase tracking-tighter bg-emerald-500/10 px-1.5 py-0.5 rounded">PDF Preview</div>
+                 <div className="text-[9px] font-bold text-emerald-500/50 uppercase tracking-tighter bg-emerald-500/10 px-1.5 py-0.5 rounded">{t('pattern.pdfPreview')}</div>
               </div>
-              <span className="text-[10px] text-emerald-500/70 font-bold uppercase tracking-widest block mb-3">Generated Name Example:</span>
+              <span className="text-[10px] text-emerald-500/70 font-bold uppercase tracking-widest block mb-3">{t('pattern.previewTitle')}</span>
               <div className="bg-black/40 rounded-lg p-4 border border-white/5 group-hover:border-emerald-500/30 transition-colors">
                 <code className="text-sm sm:text-base text-emerald-400 font-mono break-all leading-relaxed">
                   {preview || 'your_invoice.pdf'}
                 </code>
               </div>
               <p className="text-[10px] text-gray-500 mt-3 italic">
-                This is a preview with dummy data. Your files will be renamed according to this format.
+                {t('pattern.previewDesc')}
               </p>
             </div>
           </div>
@@ -227,10 +229,10 @@ export function PatternEditor() {
             <div>
               <h4 className="text-sm font-bold text-white flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-violet-500/50" />
-                Business Categories
+                {t('category.title')}
               </h4>
               <p className="text-xs text-gray-400 mt-1">
-                Manage categories that can be assigned to your invoices (e.g., Supplies, Software, Fees...).
+                {t('category.desc')}
               </p>
             </div>
 
@@ -238,12 +240,12 @@ export function PatternEditor() {
               <Input
                 value={newCat}
                 onChange={(e) => setNewCat(e.target.value)}
-                placeholder="New category…"
+                placeholder={t('category.new')}
                 className="bg-white/5 border-white/10 text-white text-sm flex-1 h-9"
-                aria-label="New business category"
+                aria-label={t('category.new')}
               />
               <Button type="submit" variant="outline" className="h-9 border-white/10 text-gray-300 hover:text-white">
-                Add
+                {t('category.add')}
               </Button>
             </form>
 

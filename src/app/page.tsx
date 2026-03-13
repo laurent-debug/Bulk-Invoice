@@ -224,16 +224,16 @@ export default function HomePage() {
             <div className="flex flex-col items-center gap-4 mt-8">
               {/* Highlight badge */}
               <span className="inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-500/10 px-5 py-2 text-sm text-violet-300 font-medium">
-                📄 Scans, receipts, and handwritten notes perfectly read by AI
+                📄 {t('feature.scans')}
               </span>
 
               {/* Security badges */}
               <div className="flex flex-wrap items-center justify-center gap-3">
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-gray-400 font-medium whitespace-nowrap">
-                  🔒 Original files are never stored
+                  🔒 {t('feature.nostore')}
                 </span>
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-gray-400 font-medium whitespace-nowrap">
-                  🌐 Secure Server-Side Processing
+                  🌐 {t('feature.secure')}
                 </span>
               </div>
             </div>
