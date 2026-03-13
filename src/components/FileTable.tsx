@@ -113,9 +113,15 @@ export function FileTable() {
                   {file.extractionStatus === 'error' && (
                     <Badge variant="outline" className="text-[10px] border-red-500/30 text-red-400 h-4 px-1.5">Error</Badge>
                   )}
-                  {file.isCreditNote && (
-                    <Badge variant="outline" className="text-[10px] border-emerald-500/50 text-emerald-300 bg-emerald-500/10 h-4 px-1.5">CREDIT NOTE</Badge>
-                  )}
+                  {/* Credit Note Toggle (Moved here to save a row) */}
+                  <label className="flex items-center gap-1.5 ml-2 cursor-pointer group/avoir border border-white/5 hover:border-white/10 rounded px-1.5 py-0.5 bg-white/5 transition-colors">
+                    <Checkbox
+                      checked={file.isCreditNote}
+                      onCheckedChange={(checked) => updateFile(file.id, { isCreditNote: !!checked })}
+                      className="h-3.5 w-3.5 border-white/20 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
+                    />
+                    <span className={`text-[10px] font-medium leading-none ${file.isCreditNote ? 'text-emerald-400' : 'text-gray-500 group-hover/avoir:text-gray-400'}`}>Avoir</span>
+                  </label>
                 </div>
 
                 {/* Editable fields grid */}
@@ -251,15 +257,6 @@ export function FileTable() {
                     />
                   </div>
 
-                  {/* Credit Note Toggle */}
-                  <div className="flex flex-col justify-end pb-1">
-                    <label className="text-[10px] text-gray-500 mb-1 block">Avoir</label>
-                    <Checkbox
-                      checked={file.isCreditNote}
-                      onCheckedChange={(checked) => updateFile(file.id, { isCreditNote: !!checked })}
-                      className="h-5 w-5 border-white/20 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
-                    />
-                  </div>
                 </div>
 
                 {/* New name preview */}
