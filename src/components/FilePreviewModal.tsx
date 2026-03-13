@@ -31,7 +31,7 @@ export function FilePreviewModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent 
-        className="max-w-[1400px] w-[95vw] h-[90vh] bg-gray-950 border-white/10 p-0 overflow-hidden flex flex-col shadow-2xl"
+        className="!max-w-[75vw] w-[75vw] h-[75vh] bg-gray-950 border-white/10 p-0 overflow-hidden flex flex-col shadow-2xl"
         showCloseButton={false}
       >
         {/* Custom Header to avoid overlap */}
