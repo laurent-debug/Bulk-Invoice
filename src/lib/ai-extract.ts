@@ -30,19 +30,19 @@ Required Fields:
 - "amount": decimal number (total inclusive of tax). MUST be a number, NOT a string.
 - "currency": 3-letter currency code (CHF, EUR, USD, GBP). Default: "${defaultCurrency}".
 - "vendor": company/store name (e.g., "Swisscom", "Amazon", "Migros", "Lidl").
-- "category": choose the best from [${categoriesStr}]. IMPORTANT: Return the category name exactly as provided in the list.
+- "category": choose the BEST MATCH from this exact list: [${categoriesStr}]. You MUST pick one of these. DO NOT invent new categories. If nothing matches perfectly, pick the closest logical category (e.g. pick "Supplies" or "Other" if uncertain).
 - "invoiceNumber": the invoice/receipt/reference number if present.
 - "paymentMethod": for paid documents/receipts, identify the method (e.g., "Visa", "Mastercard", "Cash", "TWINT", "Amex"). If not paid or unknown, return null.
 - "dueDate": for unpaid invoices, identify the deadline/due date in "YYYY-MM-DD" format. If already paid or not found, return null.
-- "isCreditNote": boolean (true/false). Set to true if this is a Credit Note, Refund, Avoir, or Gutschrift.
+- "isCreditNote": boolean (true/false). YOU MUST CHECK CAREFULLY if this is a Credit Note, Refund, Avoir, Note de crédit, Gutschrift, or Storno. If it indicates money returned to the customer, or a negative total, set to true.
 
 Strict Rules:
 1. Support French (Facture, Total, Avoir), German (Rechnung, Betrag, Quittung, Gutschrift), and English (Invoice, Receipt, Credit Note, Refund).
 2. Use the following language for vendor identification and any text analysis: ${userLang}.
 3. If a value is missing, return null or false for boolean.
-4. "amount" must be a number (positive total from document).
+4. "amount" must be a number (absolute value of the total). If it's a credit note with a negative total, make the amount positive but set isCreditNote to true.
 5. "date" must be YYYY-MM-DD.
-6. The "vendor" is the company name, not their address.
+6. The "vendor" is the company name emitting the document.
 7. Look for the GRAND TOTAL (Total TTC / Rechnungsbetrag).${hintsStr}
 
 Invoice Text:
@@ -94,18 +94,18 @@ Required Fields:
 - "amount": decimal number (total inclusive of tax). MUST be a number.
 - "currency": 3-letter currency code (CHF, EUR, USD, GBP). Default: "${defaultCurrency}".
 - "vendor": company/store name visible on the document.
-- "category": choose the best from [${categories.join(', ')}].
+- "category": choose the BEST MATCH from this exact list: [${categories.join(', ')}]. You MUST pick one of these. DO NOT invent new categories.
 - "invoiceNumber": the invoice/receipt number if visible.
 - "paymentMethod": identify payment method for receipts (Visa, Mastercard, Cash, TWINT).
 - "dueDate": identify due date for unpaid invoices in "YYYY-MM-DD" format.
-- "isCreditNote": boolean (true/false).
+- "isCreditNote": boolean (true/false). YOU MUST CHECK CAREFULLY if this is a Credit Note, Refund, Avoir, Note de crédit, Gutschrift, or Storno. If the document indicates money returned or has a negative total, set to true.
 
 Strict Rules:
 1. Support French, German (Rechnung, Betrag, Datum, Gutschrift), and English.
 2. User's primary language is ${userLang}.
 3. Read the entire document carefully, including handwritten notes.
-4. If a value is missing, return null.
-5. "amount" must be a number (positive total from document).
+4. If a value is missing, return null or false for boolean.
+5. "amount" must be a number (absolute positive value, even for credit notes).
 6. Search for the GRAND TOTAL (Total TTC / Rechnungsbetrag / Total Amount).${hintsStr}`;
 
   try {
