@@ -13,6 +13,7 @@ export interface AIExtractionResult {
   paymentMethod?: string;
   dueDate?: string;
   isCreditNote?: boolean;
+  confidence?: number;
 }
 
 /**
@@ -35,6 +36,7 @@ Required Fields:
 - "paymentMethod": for paid documents/receipts, identify the method (e.g., "Visa", "Mastercard", "Cash", "TWINT", "Amex"). If not paid or unknown, return null.
 - "dueDate": for unpaid invoices, identify the deadline/due date in "YYYY-MM-DD" format. If already paid or not found, return null.
 - "isCreditNote": boolean (true/false). YOU MUST CHECK CAREFULLY if this is a Credit Note, Refund, Avoir, Note de crédit, Gutschrift, or Storno. If it indicates money returned to the customer, or a negative total, set to true.
+- "confidence": decimal number between 0.0 and 1.0 reflecting your certainty of the extracted main fields (vendor, amount, date).
 
 Strict Rules:
 1. Support French (Facture, Total, Avoir), German (Rechnung, Betrag, Quittung, Gutschrift), and English (Invoice, Receipt, Credit Note, Refund).
@@ -99,6 +101,7 @@ Required Fields:
 - "paymentMethod": identify payment method for receipts (Visa, Mastercard, Cash, TWINT).
 - "dueDate": identify due date for unpaid invoices in "YYYY-MM-DD" format.
 - "isCreditNote": boolean (true/false). YOU MUST CHECK CAREFULLY if this is a Credit Note, Refund, Avoir, Note de crédit, Gutschrift, or Storno. If the document indicates money returned or has a negative total, set to true.
+- "confidence": decimal number between 0.0 and 1.0 reflecting your certainty of the extracted main fields.
 
 Strict Rules:
 1. Support French, German (Rechnung, Betrag, Datum, Gutschrift), and English.
@@ -255,7 +258,38 @@ function parseAIResponse(response: string): AIExtractionResult {
       result.isCreditNote = false;
     }
 
-    console.log('[AI] Parsed result:', result);
+    // Confidence
+    if (typeof parsed.confidence === 'number') {
+      result.confidence = parsed.confidence;
+    } else {
+      result.confidence = 1.0; // Assume good if not provided
+    }
+
+    // --- SANITY VALIDATION (Phase 2) ---
+    const today = new Date().toISOString().split('T')[0];
+
+    // Validate Date: cannot be in the future
+    if (result.date && result.date > today) {
+      console.warn(`[Validation] Date out of bounds (${result.date} > ${today}), ignoring.`);
+      result.date = undefined;
+    }
+
+    // Validate Amount: between 0 and 100,000
+    if (result.amount !== undefined) {
+      if (result.amount < 0 || result.amount > 100000) {
+        console.warn(`[Validation] Amount out of bounds (${result.amount}), ignoring.`);
+        result.amount = undefined;
+      }
+    }
+
+    // Validate Vendor & Confidence
+    // If confidence is low or vendor is too short, mark as UNKNOWN
+    if ((result.confidence && result.confidence < 0.6) || (result.vendor && result.vendor.length < 2)) {
+      console.warn(`[Validation] Low confidence (${result.confidence}) or invalid vendor (${result.vendor}), setting to UNKNOWN.`);
+      result.vendor = 'UNKNOWN'; // Forces the naming pattern to output UNKNOWN
+    }
+
+    console.log('[AI] Parsed & Validated result:', result);
     return result;
   } catch (err) {
     console.error('[AI] Failed to parse response:', err);
