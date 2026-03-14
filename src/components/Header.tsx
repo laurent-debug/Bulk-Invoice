@@ -1,12 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useAppStore } from '@/lib/store';
 import { createClient } from '@/utils/supabase/client';
 import { logout } from '@/app/auth-actions';
-import { type User } from '@supabase/supabase-js';
 import { useTranslation } from 'react-i18next';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -16,95 +14,11 @@ export function Header({
   onHistoryOpen: () => void;
 }) {
   const { t, i18n } = useTranslation();
-  const { user, isPro, isAuthInitialized, setAuthData } = useAppStore();
+  const { user, isPro, isAuthInitialized } = useAppStore();
   const supabase = createClient();
 
-  useEffect(() => {
-    let mounted = true;
-
-    const checkInitialSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!mounted) return;
-      
-      if (session?.user) {
-        console.log('[Auth] Initial session found:', session.user.email);
-        let { data } = await supabase
-          .from('profiles')
-          .select('is_pro, files_processed')
-          .eq('id', session.user.id)
-          .maybeSingle();
-        
-        if (!data && mounted) {
-           const { data: newProfile } = await supabase
-            .from('profiles')
-            .insert([{ id: session.user.id }])
-            .select()
-            .single();
-           data = newProfile;
-        }
-
-        if (mounted) {
-          setAuthData(session.user, data?.is_pro || false, data?.files_processed || 0);
-        }
-      } else {
-        if (mounted) {
-          setAuthData(null, false, 0);
-        }
-      }
-    };
-
-    checkInitialSession();
-
-    // onAuthStateChange handles subsequent changes
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('[Auth] State change:', event, session ? 'has session' : 'NO session');
-
-        if (event === 'SIGNED_OUT') {
-          setAuthData(null, false, 0);
-          return;
-        }
-
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
-          if (session?.user) {
-            console.log('[Auth] State change - fetching profile for:', session.user.email);
-            let { data, error } = await supabase
-              .from('profiles')
-              .select('is_pro, files_processed')
-              .eq('id', session.user.id)
-              .maybeSingle();
-
-            if (error) {
-              console.error('[Auth] Profile fetch error:', error);
-            }
-
-            // If no profile exists, create one
-            if (!data && !error) {
-              console.log('[Auth] No profile found, creating one...');
-              const { data: newProfile, error: insertError } = await supabase
-                .from('profiles')
-                .insert([{ id: session.user.id }])
-                .select()
-                .single();
-              
-              if (insertError) {
-                console.error('[Auth] Profile creation error:', insertError);
-              } else {
-                data = newProfile;
-              }
-            }
-            
-            setAuthData(session.user, data?.is_pro || false, data?.files_processed || 0);
-          }
-        }
-      }
-    );
-
-    return () => {
-      mounted = false;
-      authListener.subscription.unsubscribe();
-    };
-  }, []);
+  // Auth is handled by the AuthProvider singleton at root level.
+  // No useEffect needed here.
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-gray-950/80 backdrop-blur-xl">
@@ -138,15 +52,14 @@ export function Header({
               <span className="text-gray-400 hidden sm:inline-block truncate max-w-[150px]">
                 {user.email}
               </span>
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 className="text-gray-400 hover:text-white hover:bg-white/5"
                 onClick={async () => {
                   try {
                     await logout();
-                  } catch (e) {
-                    // Fallback to client-side if server action fails
+                  } catch {
                     await supabase.auth.signOut();
                     window.location.href = '/login';
                   }
