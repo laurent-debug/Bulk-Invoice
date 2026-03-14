@@ -14,6 +14,11 @@ export function Header({
   onHistoryOpen: () => void;
 }) {
   const { t, i18n } = useTranslation();
+  // Normalize locale to 2-letter code to avoid SSR/client hydration mismatches
+  // e.g. "fr-CH" and "fr-FR" both become "fr"
+  const currentLang = (['en', 'fr', 'de'].includes((i18n.language ?? 'en').substring(0, 2))
+    ? (i18n.language ?? 'en').substring(0, 2)
+    : 'en') as 'en' | 'fr' | 'de';
   const { user, isPro, isAuthInitialized } = useAppStore();
   const supabase = createClient();
 
@@ -79,7 +84,7 @@ export function Header({
           <div className="h-6 w-[1px] bg-white/10 mx-1 hidden sm:block" />
 
           {/* Language Selector */}
-          <Select value={i18n.language ?? 'en'} onValueChange={(lang) => { if (lang) i18n.changeLanguage(lang); }}>
+          <Select value={currentLang} onValueChange={(lang) => { if (lang) i18n.changeLanguage(lang); }}>
             <SelectTrigger className="w-[60px] h-9 bg-white/5 border-white/10 text-white text-xs">
               <SelectValue />
             </SelectTrigger>
