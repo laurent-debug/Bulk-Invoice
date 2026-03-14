@@ -14,7 +14,7 @@ const MAX_FILES = 50;
 const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20 MB
 
 export function DropZone({ onFilesAdded, onLimitReached }: { onFilesAdded: () => void; onLimitReached: () => void }) {
-  const { files, addFiles, user, isPro, filesProcessed } = useAppStore();
+  const { files, addFiles, user, isPro, filesProcessed, isAuthInitialized } = useAppStore();
   const router = useRouter();
   const { t, i18n } = useTranslation();
   const [mounted, setMounted] = useState(false);
@@ -145,7 +145,7 @@ export function DropZone({ onFilesAdded, onLimitReached }: { onFilesAdded: () =>
               <p className="text-gray-400">
                 {t('dropzone.browse')}
               </p>
-              {!mounted ? (
+              {(!mounted || !isAuthInitialized) ? (
                 <div className="mt-3 inline-flex items-center rounded-full bg-transparent px-3 py-1 text-sm font-medium text-transparent">
                   Loading...
                 </div>

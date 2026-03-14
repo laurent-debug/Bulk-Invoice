@@ -13,6 +13,7 @@ interface AppState {
   // Auth
   user: User | null;
   isPro: boolean;
+  isAuthInitialized: boolean;
   filesProcessed: number;
   setAuthData: (user: User | null, isPro: boolean, filesProcessed: number) => void;
   incrementFilesProcessed: () => void;
@@ -57,8 +58,9 @@ export const useAppStore = create<AppState>()(
       // ---- Auth ----
       user: null,
       isPro: false,
+      isAuthInitialized: false,
       filesProcessed: 0,
-      setAuthData: (user, isPro, filesProcessed) => set({ user, isPro, filesProcessed }),
+      setAuthData: (user, isPro, filesProcessed) => set({ user, isPro, filesProcessed, isAuthInitialized: true }),
       incrementFilesProcessed: () => set((state) => ({ filesProcessed: state.filesProcessed + 1 })),
 
       // ---- Files ----
