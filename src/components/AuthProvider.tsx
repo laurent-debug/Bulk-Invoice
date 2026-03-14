@@ -9,7 +9,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
-    const supabase = createClient();
+
+    // Safety net: if nothing resolves within 5s, mark auth as initialized (unauthenticated)
+    const safetyTimer = setTimeout(() => {
+      if (mounted) {
+        console.warn('[Auth] Safety timeout — forcing isAuthInitialized=true');
+        setAuthData(null, false, 0);
+      }
+    }, 5000);
+
+    let supabase: ReturnType<typeof createClient>;
+    try {
+      supabase = createClient();
+      console.log('[Auth] Supabase client created');
+    } catch (err) {
+      console.error('[Auth] createClient() failed:', err);
+      clearTimeout(safetyTimer);
+      setAuthData(null, false, 0);
+      return () => { mounted = false; };
+    }
 
     const fetchProfileAndSetAuth = async (userId: string, email: string) => {
       try {
@@ -69,7 +87,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    initAuth();
+    initAuth().then(() => clearTimeout(safetyTimer));
 
     // Step 2: Listen for auth changes (login, logout, token refresh)
     // Does NOT handle INITIAL_SESSION to avoid double profile fetch.
@@ -96,6 +114,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       mounted = false;
+      clearTimeout(safetyTimer);
       listener.subscription.unsubscribe();
     };
   }, [setAuthData]);
