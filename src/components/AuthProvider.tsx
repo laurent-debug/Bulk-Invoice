@@ -13,22 +13,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const fetchProfileAndSetAuth = async (userId: string, email: string) => {
       try {
-        let { data } = await supabase
+        console.log('[Auth] Fetching profile for:', email);
+        let { data, error } = await supabase
           .from('profiles')
           .select('is_pro, files_processed')
           .eq('id', userId)
           .maybeSingle();
 
+        console.log('[Auth] Profile result:', { data, error });
+
         if (!data) {
-          const { data: newProfile } = await supabase
+          console.log('[Auth] New user — creating profile');
+          const { data: newProfile, error: insertError } = await supabase
             .from('profiles')
             .insert([{ id: userId }])
             .select()
             .single();
+          console.log('[Auth] Profile created:', { newProfile, insertError });
           data = newProfile;
         }
 
         if (mounted) {
+          console.log('[Auth] setAuthData → isPro:', data?.is_pro, '| filesProcessed:', data?.files_processed);
           setAuthData(
             { id: userId, email } as any,
             data?.is_pro || false,
@@ -46,12 +52,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Step 1: Read current session directly (reliable cross-browser)
     const initAuth = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        console.log('[Auth] getSession() start');
+        const { data: { session }, error } = await supabase.auth.getSession();
+        console.log('[Auth] getSession() result:', { hasSession: !!session, userId: session?.user?.id, email: session?.user?.email, error });
         if (!mounted) return;
 
         if (session?.user) {
           await fetchProfileAndSetAuth(session.user.id, session.user.email ?? '');
         } else {
+          console.log('[Auth] No session → unauthenticated');
           setAuthData(null, false, 0);
         }
       } catch (error) {
@@ -67,7 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: listener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!mounted) return;
-        console.log('[Auth] Event:', event);
+        console.log('[Auth] Event:', event, '| user:', session?.user?.email ?? 'none');
 
         if (event === 'SIGNED_OUT') {
           setAuthData(null, false, 0);
