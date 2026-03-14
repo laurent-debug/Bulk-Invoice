@@ -1,55 +1,69 @@
 'use client';
 
 import { useState, useEffect, useTransition } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { login, signup } from '@/app/auth-actions';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { signup } from '@/app/auth-actions';
+import { createClient } from '@/utils/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
 
-export function LoginForm({ serverError }: { serverError?: string }) {
+export function LoginForm({ serverError: initialServerError }: { serverError?: string }) {
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [passwordError, setPasswordError] = useState('');
+  const [serverError, setServerError] = useState(initialServerError ?? '');
   const [successMessage, setSuccessMessage] = useState('');
   const [isPending, startTransition] = useTransition();
   const [isLoading, setIsLoading] = useState(false);
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   useEffect(() => {
     const success = searchParams.get('success');
-    if (success) {
-      setSuccessMessage(success);
-    }
+    if (success) setSuccessMessage(success);
   }, [searchParams]);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     setPasswordError('');
+    setServerError('');
 
     const formData = new FormData(e.currentTarget);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
 
     if (mode === 'signup') {
-      const password = formData.get('password') as string;
       const confirmPassword = formData.get('confirmPassword') as string;
-      
       if (password !== confirmPassword) {
         setPasswordError('Passwords do not match.');
         setIsLoading(false);
         return;
       }
-      
-      // Call signup server action
-      startTransition(() => {
-        signup(formData);
-      });
-    } else {
-      // Call login server action
-      startTransition(() => {
-        login(formData);
-      });
+      // Signup still uses server action (needs server origin for email redirect)
+      startTransition(() => { signup(formData); });
+      return;
+    }
+
+    // Login: client-side so SIGNED_IN fires on the same Supabase instance
+    // that AuthProvider is listening to — auth state updates immediately.
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        setServerError(error.message);
+        setIsLoading(false);
+      } else {
+        router.push('/');
+        router.refresh();
+      }
+    } catch (err) {
+      setServerError('Login failed. Please try again.');
+      setIsLoading(false);
     }
   };
+
+  const loading = isLoading || isPending;
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gray-950 p-4">
@@ -59,14 +73,14 @@ export function LoginForm({ serverError }: { serverError?: string }) {
             {mode === 'login' ? 'Welcome Back!' : 'Create Account'}
           </h1>
           <p className="mt-2 text-sm text-gray-400">
-            {mode === 'login' 
-              ? 'Log in to continue.' 
+            {mode === 'login'
+              ? 'Log in to continue.'
               : 'Test AI-powered invoice renaming for free.'}
           </p>
         </div>
 
         {(serverError || passwordError) && (
-          <div 
+          <div
             role="alert"
             className="mb-6 rounded-lg bg-red-500/10 p-3 text-sm text-red-500 border border-red-500/20 text-center animate-in fade-in zoom-in duration-300"
           >
@@ -75,7 +89,7 @@ export function LoginForm({ serverError }: { serverError?: string }) {
         )}
 
         {successMessage && (
-          <div 
+          <div
             role="alert"
             className="mb-6 rounded-lg bg-emerald-500/10 p-3 text-sm text-emerald-500 border border-emerald-500/20 text-center animate-in fade-in duration-500"
           >
@@ -83,11 +97,7 @@ export function LoginForm({ serverError }: { serverError?: string }) {
           </div>
         )}
 
-        <form 
-          className="flex flex-col gap-4" 
-          onSubmit={handleSubmit}
-          action={mode === 'login' ? login : signup}
-        >
+        <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <div className="flex flex-col gap-2">
             <label htmlFor="email" className="text-sm font-medium text-gray-300">
               Email
@@ -98,7 +108,7 @@ export function LoginForm({ serverError }: { serverError?: string }) {
               type="email"
               placeholder="you@example.com"
               required
-              disabled={isLoading}
+              disabled={loading}
               className="bg-black/50 border-white/10 text-white placeholder:text-gray-600 focus-visible:ring-violet-500 disabled:opacity-50"
             />
           </div>
@@ -112,14 +122,14 @@ export function LoginForm({ serverError }: { serverError?: string }) {
               name="password"
               type="password"
               required
-              disabled={isLoading}
+              disabled={loading}
               className="bg-black/50 border-white/10 text-white focus-visible:ring-violet-500 disabled:opacity-50"
             />
             <div className="flex items-center justify-between px-1">
               <div />
               {mode === 'login' && (
-                <Link 
-                  href="/forgot-password" 
+                <Link
+                  href="/forgot-password"
                   className="text-xs text-violet-400 hover:text-violet-300 transition-colors"
                 >
                   Forgot password?
@@ -138,7 +148,7 @@ export function LoginForm({ serverError }: { serverError?: string }) {
                 name="confirmPassword"
                 type="password"
                 required
-                disabled={isLoading}
+                disabled={loading}
                 className="bg-black/50 border-white/10 text-white focus-visible:ring-violet-500 disabled:opacity-50"
               />
             </div>
@@ -147,14 +157,14 @@ export function LoginForm({ serverError }: { serverError?: string }) {
           <div className="mt-4 flex flex-col gap-4">
             <Button
               type="submit"
-              disabled={isLoading}
+              disabled={loading}
               className="w-full bg-violet-600 hover:bg-violet-700 text-white font-semibold h-11 shadow-lg shadow-violet-500/20"
             >
-              {isLoading ? (
+              {loading ? (
                 <span className="flex items-center gap-2">
                   <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
                   Processing...
                 </span>
@@ -162,17 +172,18 @@ export function LoginForm({ serverError }: { serverError?: string }) {
                 mode === 'login' ? 'Log In' : 'Sign Up'
               )}
             </Button>
-            
+
             <div className="text-center text-sm text-gray-400">
               {mode === 'login' ? "Don't have an account? " : "Already have an account? "}
               <button
                 type="button"
-                disabled={isLoading}
+                disabled={loading}
                 className="text-white hover:text-violet-400 font-medium underline underline-offset-4 disabled:opacity-50 disabled:no-underline"
                 onClick={() => {
                   setMode(mode === 'login' ? 'signup' : 'login');
                   setPasswordError('');
                   setSuccessMessage('');
+                  setServerError('');
                 }}
               >
                 {mode === 'login' ? 'Create Account' : 'Log In'}
