@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useAppStore } from '@/lib/store';
 import { createClient } from '@/utils/supabase/client';
+import { logout } from '@/app/auth-actions';
 import { type User } from '@supabase/supabase-js';
 import { useTranslation } from 'react-i18next';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -135,7 +136,15 @@ export function Header({
                 variant="ghost" 
                 size="sm" 
                 className="text-gray-400 hover:text-white hover:bg-white/5"
-                onClick={() => supabase.auth.signOut()}
+                onClick={async () => {
+                  try {
+                    await logout();
+                  } catch (e) {
+                    // Fallback to client-side if server action fails
+                    await supabase.auth.signOut();
+                    window.location.href = '/login';
+                  }
+                }}
               >
                 {t('common.signout')}
               </Button>

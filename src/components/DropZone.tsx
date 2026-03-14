@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { v4 as uuidv4 } from 'uuid';
 import { useAppStore } from '@/lib/store';
@@ -17,6 +17,12 @@ export function DropZone({ onFilesAdded, onLimitReached }: { onFilesAdded: () =>
   const { files, addFiles, user, isPro, filesProcessed } = useAppStore();
   const router = useRouter();
   const { t, i18n } = useTranslation();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
@@ -139,7 +145,11 @@ export function DropZone({ onFilesAdded, onLimitReached }: { onFilesAdded: () =>
               <p className="text-gray-400">
                 {t('dropzone.browse')}
               </p>
-              {!isPro ? (
+              {!mounted ? (
+                <div className="mt-3 inline-flex items-center rounded-full bg-transparent px-3 py-1 text-sm font-medium text-transparent">
+                  Loading...
+                </div>
+              ) : !isPro ? (
                 <div className="mt-3 inline-flex items-center rounded-full bg-violet-500/10 px-3 py-1 text-sm font-medium text-violet-300 border border-violet-500/20">
                   {t('dropzone.trial', { used: filesProcessed })}
                 </div>
