@@ -18,9 +18,10 @@ export async function POST(req: NextRequest) {
       .eq('id', user.id)
       .single();
 
-    if (profile && !profile.is_pro && profile.files_processed >= 5) {
-      return NextResponse.json({ error: 'LIMIT_REACHED' }, { status: 403 });
-    }
+    // Temporarily treat all logged-in users as Pro
+    // if (profile && !profile.is_pro && profile.files_processed >= 5) {
+    //   return NextResponse.json({ error: 'LIMIT_REACHED' }, { status: 403 });
+    // }
 
     // 2. Body Parsing
     const { prompt, images } = await req.json();
