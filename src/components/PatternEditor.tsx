@@ -18,9 +18,12 @@ const TOKEN_INFO: Record<TokenType, { label: string; example: string }> = {
   invoiceNumber: { label: 'Invoice N°', example: 'INV-001' },
   paymentMethod: { label: 'Payment', example: 'Visa' },
   dueDate: { label: 'Due Date', example: '260411' },
+  vendorBranch: { label: 'Legal Entity', example: 'Acme-AG' },
+  beneficiary: { label: 'Beneficiary', example: 'Acme-SA' },
+  paymentReference: { label: 'Pay Ref', example: 'QR-123456' },
 };
 
-const ALL_TOKENS: TokenType[] = ['date', 'amount', 'currency', 'vendor', 'category', 'invoiceNumber', 'paymentMethod', 'dueDate'];
+const ALL_TOKENS: TokenType[] = ['date', 'amount', 'currency', 'vendor', 'vendorBranch', 'category', 'invoiceNumber', 'paymentMethod', 'dueDate', 'beneficiary', 'paymentReference'];
 
 export function PatternEditor() {
   const { t } = useTranslation();

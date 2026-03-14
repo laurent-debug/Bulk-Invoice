@@ -259,6 +259,30 @@ export function FileTable() {
 
                 </div>
 
+                {/* Reconciliation row: vendor branch, beneficiary, payment reference */}
+                {(file.vendorBranch || file.beneficiary || file.paymentReference) && (
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mb-2 px-1">
+                    {file.vendorBranch && (
+                      <span className="text-[10px] text-gray-500" title="Legal entity">
+                        <span className="text-gray-600 mr-1">Entity:</span>
+                        <span className="text-gray-400">{file.vendorBranch}</span>
+                      </span>
+                    )}
+                    {file.beneficiary && (
+                      <span className="text-[10px] text-gray-500" title="Payment beneficiary (as on bank statement)">
+                        <span className="text-gray-600 mr-1">Benef:</span>
+                        <span className="text-indigo-400">{file.beneficiary}</span>
+                      </span>
+                    )}
+                    {file.paymentReference && (
+                      <span className="text-[10px] font-mono text-gray-500" title="Banking reference (BVR/QR)">
+                        <span className="text-gray-600 mr-1">Ref:</span>
+                        <span className="text-violet-400">{file.paymentReference}</span>
+                      </span>
+                    )}
+                  </div>
+                )}
+
                 {/* New name preview */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">

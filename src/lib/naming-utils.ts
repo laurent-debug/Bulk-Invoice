@@ -11,7 +11,7 @@ export function generateFileName(file: InvoiceFile, pattern: NamingPattern): str
   let fileName = pattern.raw || '[date]_[amount]_[currency]_[vendor]_[category]_[invoiceNumber]';
 
   // Replace tokens like [date], [amount], [paymentMethod], etc.
-  fileName = fileName.replace(/\[(date|amount|currency|vendor|category|invoiceNumber|paymentMethod|dueDate)\]/g, (match, token) => {
+  fileName = fileName.replace(/\[(date|amount|currency|vendor|vendorBranch|category|invoiceNumber|paymentMethod|dueDate|beneficiary|paymentReference)\]/g, (match, token) => {
     return getTokenValue(file, token, pattern) || '';
   });
 
@@ -66,6 +66,15 @@ function getTokenValue(
 
     case 'dueDate':
       return file.dueDate ? formatDate(file.dueDate, pattern.dateFormat) : 'NONE';
+
+    case 'vendorBranch':
+      return file.vendorBranch ? sanitize(file.vendorBranch, 40) : null;
+
+    case 'beneficiary':
+      return file.beneficiary ? sanitize(file.beneficiary, 40) : null;
+
+    case 'paymentReference':
+      return file.paymentReference ? sanitize(file.paymentReference, 30) : null;
 
     default:
       return null;

@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     // }
 
     // 2. Body Parsing
-    const { prompt, images } = await req.json();
+    const { systemPrompt, prompt, images } = await req.json();
 
     if (!prompt) {
       return NextResponse.json({ error: 'Missing prompt' }, { status: 400 });
@@ -36,14 +36,22 @@ export async function POST(req: NextRequest) {
     }
 
     const imageList: string[] = images || [];
-    
-    // Call OpenAI
-    const content: Array<{ type: string; text?: string; image_url?: { url: string; detail: string } }> = [
+
+    // Build messages with system/user role separation for better instruction following
+    const messages: Array<{ role: string; content: string | Array<{ type: string; text?: string; image_url?: { url: string; detail: string } }> }> = [];
+
+    // System prompt (extraction rules, constant across calls)
+    if (systemPrompt) {
+      messages.push({ role: 'system', content: systemPrompt });
+    }
+
+    // User prompt (per-document context + images)
+    const userContent: Array<{ type: string; text?: string; image_url?: { url: string; detail: string } }> = [
       { type: 'text', text: prompt },
     ];
 
     for (const img of imageList) {
-      content.push({
+      userContent.push({
         type: 'image_url',
         image_url: {
           url: `data:image/jpeg;base64,${img}`,
@@ -51,6 +59,8 @@ export async function POST(req: NextRequest) {
         },
       });
     }
+
+    messages.push({ role: 'user', content: userContent });
 
     const res = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -60,9 +70,10 @@ export async function POST(req: NextRequest) {
       },
       body: JSON.stringify({
         model: 'gpt-4o-mini',
-        messages: [{ role: 'user', content }],
+        messages,
         temperature: 0.1,
-        max_tokens: 800,
+        max_tokens: 1000,
+        response_format: { type: 'json_object' },
       }),
     });
 

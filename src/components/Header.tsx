@@ -1,6 +1,8 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { useAppStore } from '@/lib/store';
 import { createClient } from '@/utils/supabase/client';
@@ -14,13 +16,24 @@ export function Header({
   onHistoryOpen: () => void;
 }) {
   const { t, i18n } = useTranslation();
+  const router = useRouter();
   // Normalize locale to 2-letter code to avoid SSR/client hydration mismatches
   // e.g. "fr-CH" and "fr-FR" both become "fr"
   const currentLang = (['en', 'fr', 'de'].includes((i18n.language ?? 'en').substring(0, 2))
     ? (i18n.language ?? 'en').substring(0, 2)
     : 'en') as 'en' | 'fr' | 'de';
   const { user, isPro, isAuthInitialized } = useAppStore();
-  const supabase = createClient();
+
+  const handleLogout = useCallback(async () => {
+    try {
+      await logout();
+    } catch {
+      // Fallback: direct client-side signout if server action fails
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      router.push('/login');
+    }
+  }, [router]);
 
   // Auth is handled by the AuthProvider singleton at root level.
   // No useEffect needed here.
@@ -61,14 +74,7 @@ export function Header({
                 variant="ghost"
                 size="sm"
                 className="text-gray-400 hover:text-white hover:bg-white/5"
-                onClick={async () => {
-                  try {
-                    await logout();
-                  } catch {
-                    await supabase.auth.signOut();
-                    window.location.href = '/login';
-                  }
-                }}
+                onClick={handleLogout}
               >
                 {t('common.signout')}
               </Button>

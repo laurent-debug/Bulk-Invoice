@@ -2,7 +2,7 @@
 // Bulk-Invoice-Formatting — Core Types
 // ============================================================
 
-export type TokenType = 'date' | 'amount' | 'currency' | 'vendor' | 'category' | 'invoiceNumber' | 'paymentMethod' | 'dueDate';
+export type TokenType = 'date' | 'amount' | 'currency' | 'vendor' | 'vendorBranch' | 'category' | 'invoiceNumber' | 'paymentMethod' | 'dueDate' | 'beneficiary' | 'paymentReference';
 export type SeparatorType = '_' | '-' | '.' | ' ';
 export type DateFormatType = 'YYMMDD' | 'YYYY-MM-DD' | 'DD-MM-YYYY';
 export type AIProvider = 'gemini' | 'openai' | 'deepseek';
@@ -20,8 +20,11 @@ export interface InvoiceFile {
   extractedAmount: number | null;
   extractedCurrency: string;          // default "CHF"
   extractedVendor: string | null;
+  vendorBranch: string | null;        // legal entity / sub-brand (e.g. "Swisscom (Schweiz) AG")
   extractedInvoiceNumber: string | null;
   category: string;                   // manual or AI-assisted
+  beneficiary: string | null;         // payment beneficiary for bank reconciliation
+  paymentReference: string | null;    // BVR/QR-ref for bank statement matching
   isSelected: boolean;
   newName: string;                    // computed
   extractionStatus: 'pending' | 'extracting' | 'done' | 'error';

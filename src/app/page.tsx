@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { DropZone } from '@/components/DropZone';
 import { PatternEditor } from '@/components/PatternEditor';
@@ -16,42 +17,43 @@ import { createAndDownloadZip } from '@/lib/zip-utils';
 import { useTranslation } from 'react-i18next';
 
 export default function HomePage() {
+  const router = useRouter();
   const [historyOpen, setHistoryOpen] = useState(false);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [showWorkspace, setShowWorkspace] = useState(false);
   const [exporting, setExporting] = useState(false);
   const { t, i18n } = useTranslation();
 
-  // Progress modal state
-  const [progressOpen, setProgressOpen] = useState(false);
-  const [progressPhase, setProgressPhase] = useState<'extraction' | 'export'>('extraction');
-  const [progressCurrent, setProgressCurrent] = useState(0);
-  const [progressTotal, setProgressTotal] = useState(0);
-  const [progressFileName, setProgressFileName] = useState('');
-  const [progressCompleted, setProgressCompleted] = useState(false);
+  // Consolidated progress modal state (was 6 separate useState)
+  const [progress, setProgress] = useState({
+    open: false,
+    phase: 'extraction' as 'extraction' | 'export',
+    current: 0,
+    total: 0,
+    fileName: '',
+    completed: false,
+  });
 
-  const { files, updateFile, categories, pattern, addBatchRecord, resetFiles, exportGrouping, incrementFilesProcessed, isPro, filesProcessed } = useAppStore();
+  const { files, updateFile, categories, pattern, addBatchRecord, resetFiles, exportGrouping } = useAppStore();
 
   // Process files after upload: extract text, parse, generate thumbnails
   const processFiles = useCallback(async () => {
     const pendingFiles = useAppStore.getState().files.filter((f) => f.extractionStatus === 'pending');
     if (pendingFiles.length === 0) return;
 
-    setProgressOpen(true);
-    setProgressPhase('extraction');
-    setProgressTotal(pendingFiles.length);
-    setProgressCurrent(0);
-    setProgressCompleted(false);
+    setProgress({ open: true, phase: 'extraction', current: 0, total: pendingFiles.length, fileName: '', completed: false });
 
     for (let i = 0; i < pendingFiles.length; i++) {
+      // Read fresh from store each iteration to avoid stale closure on isPro/filesProcessed
+      const { isPro, filesProcessed, incrementFilesProcessed } = useAppStore.getState();
+
       if (!isPro && filesProcessed >= 5) {
         setUpgradeOpen(true);
         break;
       }
 
       const file = pendingFiles[i];
-      setProgressCurrent(i + 1);
-      setProgressFileName(file.originalName);
+      setProgress((p) => ({ ...p, current: i + 1, fileName: file.originalName }));
       updateFile(file.id, { extractionStatus: 'extracting' });
 
       try {
@@ -73,10 +75,13 @@ export default function HomePage() {
         let finalAmount = null;
         let finalCurrency = pattern.defaultCurrency;
         let finalVendor = '';
+        let finalVendorBranch: string | null = null;
         let finalInvoiceNumber = '';
         let finalCategory = '';
         let finalPaymentMethod = '';
         let finalDueDate = null;
+        let finalBeneficiary: string | null = null;
+        let finalPaymentReference: string | null = null;
 
         try {
           // 4a. Run local Regex first (fast, multi-language support)
@@ -85,7 +90,7 @@ export default function HomePage() {
           console.log(`[Extraction] Regex hints:`, hints);
 
           let aiResult;
-          
+
           try {
             console.log(`[Extraction] Rendering PDF pages as images for vision...`);
             const pageImages = await renderPagesAsImages(file.fileBlob, 2);
@@ -107,10 +112,13 @@ export default function HomePage() {
             finalAmount = aiResult.amount ?? hints.amount ?? null;
             finalCurrency = aiResult.currency ?? hints.currency;
             finalVendor = aiResult.vendor ?? hints.vendor ?? '';
+            finalVendorBranch = aiResult.vendorBranch ?? null;
             finalCategory = aiResult.category ?? '';
             finalInvoiceNumber = aiResult.invoiceNumber ?? hints.invoiceNumber ?? '';
             finalPaymentMethod = aiResult.paymentMethod ?? hints.paymentMethod ?? '';
             finalDueDate = aiResult.dueDate ?? hints.dueDate ?? null;
+            finalBeneficiary = aiResult.beneficiary ?? null;
+            finalPaymentReference = aiResult.paymentReference ?? null;
           } else {
             // No AI result found, use regex hints as best effort
             finalDate = hints.date ?? null;
@@ -124,14 +132,14 @@ export default function HomePage() {
         } catch (error) {
           const aiError = error as Error;
           console.warn(`[Extraction] AI/Regex failed:`, aiError.message);
-          
+
           if (aiError.message === 'LIMIT_REACHED') {
             setUpgradeOpen(true);
-            setProgressCompleted(true);
+            setProgress((p) => ({ ...p, completed: true }));
             updateFile(file.id, { extractionStatus: 'pending' });
-            break; 
+            break;
           } else if (aiError.message === 'UNAUTHORIZED') {
-            window.location.href = '/login';
+            router.push('/login');
             return;
           }
         }
@@ -141,17 +149,20 @@ export default function HomePage() {
           extractedAmount: finalAmount,
           extractedCurrency: finalCurrency,
           extractedVendor: finalVendor,
+          vendorBranch: finalVendorBranch,
           extractedInvoiceNumber: finalInvoiceNumber,
           category: finalCategory,
           paymentMethod: finalPaymentMethod,
           dueDate: finalDueDate,
+          beneficiary: finalBeneficiary,
+          paymentReference: finalPaymentReference,
           thumbnailDataUrl,
           ocrUsed,
           extractionStatus: 'done',
         });
 
-        // Increment local counter
-        if (!isPro) {
+        // Increment counter (re-read isPro from store to ensure it's current)
+        if (!useAppStore.getState().isPro) {
           incrementFilesProcessed();
         }
 
@@ -164,8 +175,8 @@ export default function HomePage() {
       }
     }
 
-    setProgressCompleted(true);
-  }, [updateFile, categories, pattern]);
+    setProgress((p) => ({ ...p, completed: true }));
+  }, [updateFile, categories, pattern, router]);
 
   const handleFilesAdded = useCallback(() => {
     setShowWorkspace(true);
@@ -175,16 +186,11 @@ export default function HomePage() {
 
   const handleExportZip = useCallback(async () => {
     setExporting(true);
-    setProgressOpen(true);
-    setProgressPhase('export');
-    setProgressCompleted(false);
-
     const selectedFiles = files.filter((f) => f.isSelected);
-    setProgressTotal(selectedFiles.length);
+    setProgress({ open: true, phase: 'export', current: 0, total: selectedFiles.length, fileName: '', completed: false });
 
-    await createAndDownloadZip(files, (current, total, fileName) => {
-      setProgressCurrent(current);
-      setProgressFileName(fileName);
+    await createAndDownloadZip(files, (current, _total, fileName) => {
+      setProgress((p) => ({ ...p, current, fileName }));
     }, exportGrouping);
 
     addBatchRecord({
@@ -193,7 +199,7 @@ export default function HomePage() {
       destination: 'zip',
     });
 
-    setProgressCompleted(true);
+    setProgress((p) => ({ ...p, completed: true }));
     setExporting(false);
   }, [files, pattern, addBatchRecord, exportGrouping]);
 
@@ -244,8 +250,8 @@ export default function HomePage() {
         <PatternEditor />
 
         {/* Drop zone (always visible) */}
-        <DropZone 
-          onFilesAdded={handleFilesAdded} 
+        <DropZone
+          onFilesAdded={handleFilesAdded}
           onLimitReached={() => setUpgradeOpen(true)}
         />
 
@@ -270,14 +276,14 @@ export default function HomePage() {
       <HistoryPanel open={historyOpen} onOpenChange={setHistoryOpen} />
       <UpgradeModal open={upgradeOpen} onOpenChange={setUpgradeOpen} />
       <ProgressModal
-        open={progressOpen}
-        onOpenChange={setProgressOpen}
-        phase={progressPhase}
-        current={progressCurrent}
-        total={progressTotal}
-        currentFileName={progressFileName}
-        completed={progressCompleted}
-        onClose={() => setProgressOpen(false)}
+        open={progress.open}
+        onOpenChange={(open) => setProgress((p) => ({ ...p, open }))}
+        phase={progress.phase}
+        current={progress.current}
+        total={progress.total}
+        currentFileName={progress.fileName}
+        completed={progress.completed}
+        onClose={() => setProgress((p) => ({ ...p, open: false }))}
       />
     </div>
   );
