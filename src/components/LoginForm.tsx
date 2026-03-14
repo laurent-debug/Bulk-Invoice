@@ -22,21 +22,31 @@ export function LoginForm({ serverError }: { serverError?: string }) {
   }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault(); // Prevent native form submission
     setIsLoading(true);
     setPasswordError('');
 
+    const formData = new FormData(e.currentTarget);
+
     if (mode === 'signup') {
-      const formData = new FormData(e.currentTarget);
       const password = formData.get('password') as string;
       const confirmPassword = formData.get('confirmPassword') as string;
       
       if (password !== confirmPassword) {
-        e.preventDefault();
         setPasswordError('Passwords do not match.');
         setIsLoading(false);
         return;
       }
+      
+      // Call signup server action
+      await signup(formData);
+    } else {
+      // Call login server action
+      await login(formData);
     }
+    
+    // If we get here without redirecting, reset loading
+    setIsLoading(false);
   };
 
   return (
