@@ -16,7 +16,7 @@ export function Header({
   onHistoryOpen: () => void;
 }) {
   const { t, i18n } = useTranslation();
-  const { user, isPro, setAuthData } = useAppStore();
+  const { user, isPro, isAuthInitialized, setAuthData } = useAppStore();
   const supabase = createClient();
 
   useEffect(() => {
@@ -44,7 +44,11 @@ export function Header({
         }
 
         if (mounted) {
-          setAuthData(session.user, !!data?.is_pro, data?.files_processed || 0);
+          setAuthData(session.user, data?.is_pro || false, data?.files_processed || 0);
+        }
+      } else {
+        if (mounted) {
+          setAuthData(null, false, 0);
         }
       }
     };
@@ -61,43 +65,43 @@ export function Header({
           return;
         }
 
-        if (session?.user) {
-          console.log('[Auth] State change - fetching profile for:', session.user.email);
-          let { data, error } = await supabase
-            .from('profiles')
-            .select('is_pro, files_processed')
-            .eq('id', session.user.id)
-            .maybeSingle();
-
-          if (error) {
-            console.error('[Auth] Profile fetch error:', error);
-          }
-
-          // If no profile exists, create one
-          if (!data && !error) {
-            console.log('[Auth] No profile found, creating one...');
-            const { data: newProfile, error: insertError } = await supabase
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+          if (session?.user) {
+            console.log('[Auth] State change - fetching profile for:', session.user.email);
+            let { data, error } = await supabase
               .from('profiles')
-              .insert([{ id: session.user.id }])
-              .select()
-              .single();
-            
-            if (insertError) {
-              console.error('[Auth] Profile creation error:', insertError);
-            } else {
-              data = newProfile;
+              .select('is_pro, files_processed')
+              .eq('id', session.user.id)
+              .maybeSingle();
+
+            if (error) {
+              console.error('[Auth] Profile fetch error:', error);
             }
+
+            // If no profile exists, create one
+            if (!data && !error) {
+              console.log('[Auth] No profile found, creating one...');
+              const { data: newProfile, error: insertError } = await supabase
+                .from('profiles')
+                .insert([{ id: session.user.id }])
+                .select()
+                .single();
+              
+              if (insertError) {
+                console.error('[Auth] Profile creation error:', insertError);
+              } else {
+                data = newProfile;
+              }
+            }
+            
+            setAuthData(session.user, data?.is_pro || false, data?.files_processed || 0);
           }
-          
-          setAuthData(session.user, !!data?.is_pro, data?.files_processed || 0);
-        } else if (event === 'INITIAL_SESSION') {
-          // No session found on startup
-          setAuthData(null, false, 0);
         }
       }
     );
 
     return () => {
+      mounted = false;
       authListener.subscription.unsubscribe();
     };
   }, []);
@@ -115,7 +119,7 @@ export function Header({
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-lg font-bold text-white tracking-tight">{t('header.title')}</h1>
-              {isPro && (
+              {isAuthInitialized && isPro && (
                 <span className="inline-flex items-center rounded-full bg-violet-500/10 px-2 py-0.5 text-[10px] font-medium text-violet-400 border border-violet-500/20">
                   PRO
                 </span>
@@ -127,7 +131,9 @@ export function Header({
 
         {/* Actions */}
         <div className="flex items-center gap-3">
-          {user ? (
+          {!isAuthInitialized ? (
+            <div className="h-8 w-20 bg-white/5 rounded-md animate-pulse" />
+          ) : user ? (
             <div className="flex items-center gap-3 text-sm">
               <span className="text-gray-400 hidden sm:inline-block truncate max-w-[150px]">
                 {user.email}

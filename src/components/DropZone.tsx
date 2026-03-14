@@ -121,7 +121,12 @@ export function DropZone({ onFilesAdded, onLimitReached }: { onFilesAdded: () =>
 
         {/* Text */}
         <div className="text-center">
-          {!user ? (
+          {!isAuthInitialized ? (
+            <>
+              <div className="h-6 w-48 bg-white/5 rounded-md mx-auto mb-2 animate-pulse" />
+              <div className="h-10 w-32 bg-white/5 rounded-lg mx-auto mt-2 animate-pulse" />
+            </>
+          ) : !user ? (
             <>
               <p className="text-xl font-bold text-white mb-2">
                 {t('hero.title')}

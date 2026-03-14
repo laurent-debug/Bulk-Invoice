@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { login, signup } from '@/app/auth-actions';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ export function LoginForm({ serverError }: { serverError?: string }) {
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [passwordError, setPasswordError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [isPending, startTransition] = useTransition();
   const [isLoading, setIsLoading] = useState(false);
   const searchParams = useSearchParams();
 
@@ -21,8 +22,8 @@ export function LoginForm({ serverError }: { serverError?: string }) {
     }
   }, [searchParams]);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault(); // Prevent native form submission
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     setIsLoading(true);
     setPasswordError('');
 
@@ -39,14 +40,15 @@ export function LoginForm({ serverError }: { serverError?: string }) {
       }
       
       // Call signup server action
-      await signup(formData);
+      startTransition(() => {
+        signup(formData);
+      });
     } else {
       // Call login server action
-      await login(formData);
+      startTransition(() => {
+        login(formData);
+      });
     }
-    
-    // If we get here without redirecting, reset loading
-    setIsLoading(false);
   };
 
   return (
