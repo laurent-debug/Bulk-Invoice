@@ -281,10 +281,10 @@ export function PatternEditor() {
             <div>
               <h4 className="text-sm font-bold text-white flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-violet-500/50" />
-                ZIP Export Grouping
+                {t('export.title')}
               </h4>
               <p className="text-xs text-gray-400 mt-1">
-                Choose how your renamed files should be organized inside the downloaded ZIP archive.
+                {t('export.desc')}
               </p>
             </div>
 
@@ -297,10 +297,10 @@ export function PatternEditor() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-950 border-white/10">
-                  <SelectItem value="none">Flat list (No sub-folders)</SelectItem>
-                  <SelectItem value="vendor">Group by Vendor</SelectItem>
-                  <SelectItem value="category">Group by Category</SelectItem>
-                  <SelectItem value="month">Group by Month</SelectItem>
+                  <SelectItem value="none">{t('export.none')}</SelectItem>
+                  <SelectItem value="vendor">{t('export.vendor')}</SelectItem>
+                  <SelectItem value="category">{t('export.category')}</SelectItem>
+                  <SelectItem value="month">{t('export.month')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>

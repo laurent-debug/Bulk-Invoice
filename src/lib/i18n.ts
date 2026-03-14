@@ -48,7 +48,16 @@ const resources = {
       "token.category": "Category",
       "token.invoiceNumber": "Invoice N°",
       "token.paymentMethod": "Payment",
-      "token.dueDate": "Due Date"
+      "token.dueDate": "Due Date",
+      "token.vendorBranch": "Legal Entity",
+      "token.beneficiary": "Beneficiary",
+      "token.paymentReference": "Pay Ref",
+      "export.title": "ZIP Export Grouping",
+      "export.desc": "Choose how your renamed files should be organized inside the downloaded ZIP archive.",
+      "export.none": "Flat list (No sub-folders)",
+      "export.vendor": "Group by Vendor",
+      "export.category": "Group by Category",
+      "export.month": "Group by Month"
     }
   },
   fr: {
@@ -96,7 +105,16 @@ const resources = {
       "token.category": "Catégorie",
       "token.invoiceNumber": "N° Facture",
       "token.paymentMethod": "Paiement",
-      "token.dueDate": "Échéance"
+      "token.dueDate": "Échéance",
+      "token.vendorBranch": "Entité Juridique",
+      "token.beneficiary": "Bénéficiaire",
+      "token.paymentReference": "Réf. Paiement",
+      "export.title": "Groupement export ZIP",
+      "export.desc": "Choisissez comment vos fichiers renommés sont organisés dans l'archive ZIP téléchargée.",
+      "export.none": "Liste plate (pas de sous-dossiers)",
+      "export.vendor": "Grouper par Fournisseur",
+      "export.category": "Grouper par Catégorie",
+      "export.month": "Grouper par Mois"
     }
   },
   de: {
@@ -144,7 +162,16 @@ const resources = {
       "token.category": "Kategorie",
       "token.invoiceNumber": "Rechnungs-Nr.",
       "token.paymentMethod": "Zahlung",
-      "token.dueDate": "Fälligkeit"
+      "token.dueDate": "Fälligkeit",
+      "token.vendorBranch": "Rechtseinheit",
+      "token.beneficiary": "Begünstigter",
+      "token.paymentReference": "Zahlungsref.",
+      "export.title": "ZIP-Export-Gruppierung",
+      "export.desc": "Wählen Sie, wie Ihre umbenannten Dateien im ZIP-Archiv organisiert werden.",
+      "export.none": "Flache Liste (keine Unterordner)",
+      "export.vendor": "Nach Verkäufer gruppieren",
+      "export.category": "Nach Kategorie gruppieren",
+      "export.month": "Nach Monat gruppieren"
     }
   }
 };
