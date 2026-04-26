@@ -32,6 +32,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { DebugTool } from "@/components/DebugTool";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -40,10 +42,11 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased bg-gray-950 text-white min-h-screen`}
+        className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased min-h-screen`}
       >
         <AuthProvider>
           <I18nProvider>{children}</I18nProvider>
+          <DebugTool />
         </AuthProvider>
       </body>
     </html>

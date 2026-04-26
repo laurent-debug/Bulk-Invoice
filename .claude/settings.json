@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git push:*)",
+      "Bash(find /c/Users/loren/OneDrive/Documents/Antigravity/Bulk-Invoice-Rename/src -name *.json -o -name *.ts -name *i18n*)",
+      "Bash(find /c/Users/loren/OneDrive/Documents/Antigravity/Bulk-Invoice-Rename -path */node_modules -prune -o -type f -name *.json -print)",
+      "Bash(grep -E \"\\\\.tsx?$\")",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code} %{time_total}s\" \"https://hmobgcdfkywccydedufc.supabase.co/rest/v1/profiles?select=id&limit=1\" -H \"apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhtb2JnY2Rma3l3Y2N5ZGVkdWZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzMDU2NDksImV4cCI6MjA4ODg4MTY0OX0.973ujFVCTNGFflVjU9QL0guwFvOJoj9eG2k8PDGOkno\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code} %{time_total}s\" \"https://hmobgcdfkywccydedufc.supabase.co/auth/v1/health\")"
+    ]
+  }
+}

@@ -1,0 +1,84 @@
+﻿git : remote: error: GH013: 
+Repository rule violations 
+found for refs/heads/master.  
+      
+Au caractère Ligne:1 : 1
++ git push 2>&1 | Out-File 
+-Encoding utf8 
+git_push_err2.txt ; Get-Conte 
+...
++ ~~~~~~~~~~~~~
+    + CategoryInfo          : 
+    NotSpecified: (remote: e  
+  rror: ...master.        :   
+ String) [], RemoteExcepti    
+on
+    + FullyQualifiedErrorId : 
+    NativeCommandError
+ 
+remote: 
+remote: - GITHUB PUSH 
+PROTECTION        
+remote:   ÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇ
+öÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇ
+öÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇ
+öÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇ
+öÔÇöÔÇöÔÇöÔÇö        
+remote:     Resolve the 
+following violations before 
+pushing again        
+remote: 
+remote:     - Push cannot 
+contain secrets        
+remote: 
+remote:             
+remote:      (?) Learn how to 
+resolve a blocked push        
+remote:      https://docs.gith
+ub.com/code-security/secret-sc
+anning/working-with-secret-sca
+nning-and-push-protection/work
+ing-with-push-protection-from-
+the-command-line#resolving-a-b
+locked-push        
+remote:             
+remote:             
+remote:       ÔÇöÔÇö OpenAI 
+API Key ÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔ
+ÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔ
+ÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔ
+ÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇö    
+    
+remote:        locations:     
+   
+remote:          - commit: ce8
+98d1bd145065e28773add8c4c481e1
+6d136e4        
+remote:            path: 
+direct-benchmark.js:7        
+remote:          - commit: ce8
+98d1bd145065e28773add8c4c481e1
+6d136e4        
+remote:            path: 
+direct-benchmark.mjs:7        
+remote:             
+remote:        (?) To push, 
+remove secret from commit(s) 
+or follow this URL to allow 
+the secret.        
+remote:        https://github.
+com/laurent-debug/Bulk-Invoice
+/security/secret-scanning/unbl
+ock-secret/3AuH9UZefwCJY1YoEhB
+Bt8IVfwN        
+remote:             
+remote: 
+remote: 
+To https://github.com/laurent-
+debug/Bulk-Invoice.git
+ ! [remote rejected] master 
+-> master (push declined due 
+to repository rule violations)
+error: failed to push some 
+refs to 'https://github.com/la
+urent-debug/Bulk-Invoice.git'

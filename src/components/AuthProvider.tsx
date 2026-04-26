@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useAppStore } from '@/lib/store';
 
@@ -84,5 +84,57 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [setAuthData]);
 
-  return <>{children}</>;
+  return (
+    <>
+      <PreferencesSync />
+      {children}
+    </>
+  );
 }
+
+// Separate component for preferences sync to avoid massive re-renders of AuthProvider children
+function PreferencesSync() {
+  const { user, pattern, categories, exportGrouping, setPattern, setCategories, setExportGrouping } = useAppStore();
+  const isFirstMount = useRef(true);
+
+  // Sync down from user metadata when user logs in
+  useEffect(() => {
+    if (user && isFirstMount.current) {
+      isFirstMount.current = false;
+      
+      const syncDown = async () => {
+        const { data } = await supabase.auth.getUser();
+        const prefs = data.user?.user_metadata?.preferences;
+        if (prefs) {
+          if (prefs.pattern) setPattern(prefs.pattern);
+          if (prefs.categories) setCategories(prefs.categories);
+          if (prefs.exportGrouping) setExportGrouping(prefs.exportGrouping);
+        }
+      };
+      syncDown();
+    }
+  }, [user, setPattern, setCategories, setExportGrouping]);
+
+  // Sync up to user metadata when preferences change
+  useEffect(() => {
+    if (!user || isFirstMount.current) return;
+
+    const timeout = setTimeout(async () => {
+      await supabase.auth.updateUser({
+        data: {
+          preferences: {
+            pattern,
+            categories,
+            exportGrouping
+          }
+        }
+      });
+      console.log('[Auth] Synced preferences to user metadata');
+    }, 2000); // 2 second debounce
+
+    return () => clearTimeout(timeout);
+  }, [user, pattern, categories, exportGrouping]);
+  
+  return null;
+}
+

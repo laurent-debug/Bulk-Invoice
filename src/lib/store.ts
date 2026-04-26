@@ -37,8 +37,8 @@ interface AppState {
   setExportGrouping: (grouping: ExportGrouping) => void;
 
 
-  // Categories
   categories: string[];
+  setCategories: (categories: string[]) => void;
   addCategory: (category: string) => void;
   removeCategory: (category: string) => void;
 
@@ -141,6 +141,8 @@ export const useAppStore = create<AppState>()(
 
       // ---- Categories ----
       categories: DEFAULT_CATEGORIES,
+
+      setCategories: (categories) => set({ categories }),
 
       addCategory: (category) =>
         set((state) => {
