@@ -230,7 +230,7 @@ const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
  * for proper role-based messaging and JSON mode activation.
  */
 async function callAIProxy(systemPrompt: string, userPrompt: string, images?: string[], retryCount = 0): Promise<{ result: string, isPro?: boolean, filesProcessed?: number }> {
-  const maxRetries = 3;
+  const maxRetries = 6;
 
   const res = await fetch('/api/extract', {
     method: 'POST',
@@ -245,9 +245,9 @@ async function callAIProxy(systemPrompt: string, userPrompt: string, images?: st
   if (!res.ok) {
     const data = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
 
-    // Handle OpenAI Rate Limits (429) with exponential backoff
+    // Handle OpenAI Rate Limits (429) with huge exponential backoff to handle 1 minute limits
     if (res.status === 429 && retryCount < maxRetries) {
-      const delay = Math.pow(2, retryCount) * 1000 + Math.random() * 1000;
+      const delay = Math.pow(2, retryCount) * 2500 + Math.random() * 2000;
       console.warn(`[AI] Rate limit (429). Retrying in ${Math.round(delay)}ms... (${retryCount + 1}/${maxRetries})`);
       await sleep(delay);
       return callAIProxy(systemPrompt, userPrompt, images, retryCount + 1);

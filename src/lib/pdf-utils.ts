@@ -104,7 +104,7 @@ export async function generateThumbnail(blob: Blob): Promise<string> {
  * Render PDF pages as high-resolution images for vision AI
  * Returns base64 JPEG strings (without data:image/jpeg;base64, prefix)
  */
-export async function renderPagesAsImages(blob: Blob, maxPages: number = 2): Promise<string[]> {
+export async function renderPagesAsImages(blob: Blob, maxPages: number = 1): Promise<string[]> {
   const pdfjs = await getPdfjs();
   const arrayBuffer = await blob.arrayBuffer();
   const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
@@ -112,7 +112,7 @@ export async function renderPagesAsImages(blob: Blob, maxPages: number = 2): Pro
 
   for (let i = 1; i <= Math.min(pdf.numPages, maxPages); i++) {
     const page = await pdf.getPage(i);
-    const viewport = page.getViewport({ scale: 1.5 }); // Reduced from 2.5 to avoid Vercel 4.5MB payload limit
+    const viewport = page.getViewport({ scale: 1.2 }); // Reduced to 1.2 to minimize Token usage array limits
     const canvas = document.createElement('canvas');
     canvas.width = viewport.width;
     canvas.height = viewport.height;
