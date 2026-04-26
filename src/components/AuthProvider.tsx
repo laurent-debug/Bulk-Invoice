@@ -17,8 +17,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let mounted = true;
 
     const fetchProfile = async (userId: string, email: string) => {
-      // Optimistic: user is authenticated immediately, before DB responds
-      if (mounted) setAuthData({ id: userId, email } as any, false, 0);
+      // We don't set optimistic Auth data for Pro users yet because if it fails they get trapped as FREE.
+      // Wait for DB to return.
 
       try {
         const profilePromise = supabase
@@ -50,8 +50,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             data.files_processed || 0
           );
         }
-      } catch {
-        // DB timed out or failed — user stays authenticated with defaults
+      } catch (err) {
+        console.error('[Auth] Profile fetch failed:', err);
+        // If DB timed out or failed — we still need to let them use the app locally.
+        if (mounted) setAuthData({ id: userId, email } as any, false, 0);
       }
     };
 

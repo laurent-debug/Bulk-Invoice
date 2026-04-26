@@ -93,7 +93,11 @@ export async function POST(req: NextRequest) {
         .eq('id', user.id);
     }
 
-    return NextResponse.json({ result });
+    return NextResponse.json({ 
+      result, 
+      isPro: profile?.is_pro || false,
+      filesProcessed: (profile?.files_processed || 0) + (profile?.is_pro ? 0 : 1)
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     console.error('AI extraction error:', message);

@@ -18,6 +18,8 @@ export interface AIExtractionResult {
   beneficiary?: string;
   paymentReference?: string;
   confidence?: number;
+  serverIsPro?: boolean;
+  serverFilesProcessed?: number;
 }
 
 // ── Category Intelligence ────────────────────────────────────
@@ -179,8 +181,11 @@ export async function aiExtractFields(
 
   try {
     const response = await callAIProxy(SYSTEM_PROMPT, userPrompt);
-    console.log('[AI] Raw response:', response);
-    return parseAIResponse(response);
+    console.log('[AI] Raw response:', response.result);
+    const parsed = parseAIResponse(response.result);
+    parsed.serverIsPro = response.isPro;
+    parsed.serverFilesProcessed = response.filesProcessed;
+    return parsed;
   } catch (error) {
     console.error('[AI] Text extraction failed:', error);
     return {};
@@ -204,8 +209,11 @@ export async function aiExtractWithVision(
   try {
     console.log(`[AI Vision] Sending ${images.length} page image(s)...`);
     const response = await callAIProxy(SYSTEM_PROMPT, userPrompt, images);
-    console.log('[AI Vision] Raw response:', response);
-    return parseAIResponse(response);
+    console.log('[AI Vision] Raw response:', response.result);
+    const parsed = parseAIResponse(response.result);
+    parsed.serverIsPro = response.isPro;
+    parsed.serverFilesProcessed = response.filesProcessed;
+    return parsed;
   } catch (error) {
     console.error('[AI Vision] Failed:', error);
     console.log('[AI Vision] Falling back to text mode...');
@@ -221,7 +229,7 @@ const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
  * Call AI through server-side proxy. Now sends systemPrompt separately
  * for proper role-based messaging and JSON mode activation.
  */
-async function callAIProxy(systemPrompt: string, userPrompt: string, images?: string[], retryCount = 0): Promise<string> {
+async function callAIProxy(systemPrompt: string, userPrompt: string, images?: string[], retryCount = 0): Promise<{ result: string, isPro?: boolean, filesProcessed?: number }> {
   const maxRetries = 3;
 
   const res = await fetch('/api/extract', {
@@ -255,7 +263,11 @@ async function callAIProxy(systemPrompt: string, userPrompt: string, images?: st
   }
 
   const data = await res.json();
-  return data.result || '';
+  return { 
+    result: data.result || '', 
+    isPro: data.isPro, 
+    filesProcessed: data.filesProcessed 
+  };
 }
 
 // ── Response Parsing & Validation ────────────────────────────

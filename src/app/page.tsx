@@ -82,14 +82,13 @@ export default function HomePage() {
         let finalDueDate = null;
         let finalBeneficiary: string | null = null;
         let finalPaymentReference: string | null = null;
+        let aiResult: any;
 
         try {
           // 4a. Run local Regex first (fast, multi-language support)
           console.log(`[Extraction] Running Regex pre-parsing...`);
           const hints = parseInvoiceData(text);
           console.log(`[Extraction] Regex hints:`, hints);
-
-          let aiResult;
 
           try {
             console.log(`[Extraction] Rendering PDF pages as images for vision...`);
@@ -161,7 +160,16 @@ export default function HomePage() {
           extractionStatus: 'done',
         });
 
-        // Increment counter (re-read isPro from store to ensure it's current)
+        // Update local auth state with absolute truth from the API if available
+        if (aiResult?.serverIsPro !== undefined && useAppStore.getState().user) {
+          useAppStore.getState().setAuthData(
+            useAppStore.getState().user,
+            aiResult.serverIsPro,
+            aiResult.serverFilesProcessed ?? useAppStore.getState().filesProcessed
+          );
+        }
+
+        // Increment counter locally only if still not Pro according to the API truth
         if (!useAppStore.getState().isPro) {
           incrementFilesProcessed();
         }
