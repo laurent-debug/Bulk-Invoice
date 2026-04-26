@@ -112,7 +112,7 @@ export async function renderPagesAsImages(blob: Blob, maxPages: number = 2): Pro
 
   for (let i = 1; i <= Math.min(pdf.numPages, maxPages); i++) {
     const page = await pdf.getPage(i);
-    const viewport = page.getViewport({ scale: 2.5 }); // High res for AI vision
+    const viewport = page.getViewport({ scale: 1.5 }); // Reduced from 2.5 to avoid Vercel 4.5MB payload limit
     const canvas = document.createElement('canvas');
     canvas.width = viewport.width;
     canvas.height = viewport.height;
@@ -120,7 +120,7 @@ export async function renderPagesAsImages(blob: Blob, maxPages: number = 2): Pro
     await page.render({ canvasContext: ctx, viewport, canvas } as never).promise;
 
     // Get base64 without the data URL prefix
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
     images.push(dataUrl.replace(/^data:image\/jpeg;base64,/, ''));
   }
 
