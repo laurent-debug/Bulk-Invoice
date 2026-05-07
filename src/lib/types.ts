@@ -87,15 +87,15 @@ export const AI_MODELS: Record<AIProvider, { model: string; name: string; inputC
 };
 
 export const DEFAULT_CATEGORIES = [
-  'Rent',
-  'Insurance',
-  'Telecom',
-  'Supplies',
-  'Travel',
-  'Meals',
-  'Fees',
-  'Energy',
-  'Other',
+  'Loyer',
+  'Assurance',
+  'Télécom',
+  'Fournitures',
+  'Transport',
+  'Repas',
+  'Honoraires',
+  'Énergie',
+  'Autre',
 ];
 
 export const DEFAULT_PATTERN: NamingPattern = {
